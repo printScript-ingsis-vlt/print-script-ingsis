@@ -1,4 +1,4 @@
-package austral.src.main.kotlin.commun
+package austral.src.main.kotlin.interpreter.commun
 
 enum class TokenType {
     LET,
@@ -8,12 +8,20 @@ enum class TokenType {
     LITERAL,
     ASSIGNMENT,
     EOF // end of file
+    ,
+    NUMBER_LITERAL,
+    STRING_LITERAL,
+    COLON,
+    EQUAL,
+    SEMICOLON,
+    PLUS,
+    MINUS,
+    STAR,
+    SLASH,
+    LEFT_PAREN,
+    RIGHT_PAREN
 }
 
-data class Position(
-    val line: Int,
-    val column: Int
-)
 
 data class Token(
     val type: TokenType,
