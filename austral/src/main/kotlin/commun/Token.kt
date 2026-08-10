@@ -1,4 +1,4 @@
-package austral.src.main.kotlin.interpreter.commun
+package austral.src.main.kotlin.commun
 
 enum class TokenType {
     LET,
