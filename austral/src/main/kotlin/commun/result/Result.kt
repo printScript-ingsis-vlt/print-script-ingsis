@@ -21,3 +21,8 @@ data class SemanticError(
     override val position: Position,
     override val message: String
 ) : CompilerError
+
+data class LexicalError(
+    override val position: Position,
+    override val message: String
+) : CompilerError
