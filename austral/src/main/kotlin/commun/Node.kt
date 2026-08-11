@@ -1,4 +1,4 @@
-package austral.src.main.kotlin.interpreter.commun
+package austral.src.main.kotlin.commun
 
 
 sealed interface Node { val position: Position }

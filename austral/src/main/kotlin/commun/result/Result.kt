@@ -1,6 +1,6 @@
-package austral.src.main.kotlin.interpreter.commun.result
+package austral.src.main.kotlin.commun.result
 
-import austral.src.main.kotlin.interpreter.commun.Position
+import austral.src.main.kotlin.commun.Position
 
 sealed interface Result<out T, out E> {
     data class Success<out T>(val value: T) : Result<T, Nothing>
