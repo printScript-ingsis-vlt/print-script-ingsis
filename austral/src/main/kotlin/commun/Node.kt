@@ -12,6 +12,8 @@ data class Program(
     val statements: List<Stmt>
 ) : Node
 
+
+// --> Statements
 data class VariableDeclaration(
     val name: String,
     val type: String,
