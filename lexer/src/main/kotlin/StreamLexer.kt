@@ -23,6 +23,22 @@ class StreamLexer(reader: Reader) : Lexer {
     companion object {
         fun fromString(source: String): StreamLexer = StreamLexer(StringReader(source))
 
+        fun tokenize(reader: Reader): Result<List<Token>, LexicalError> {
+            val lexer = StreamLexer(reader)
+            val tokens = mutableListOf<Token>()
+            while (lexer.hasNext()) {
+                when (val result = lexer.nextToken()) {
+                    is Result.Success -> tokens.add(result.value)
+                    is Result.Failure -> return Result.Failure(result.error)
+                }
+            }
+            return Result.Success(tokens)
+        }
+
+        fun tokenize(source: String): Result<List<Token>, LexicalError> {
+            return tokenize(StringReader(source))
+        }
+
         private val KEYWORDS = mapOf(
             "let" to TokenType.LET
         )
