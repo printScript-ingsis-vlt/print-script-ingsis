@@ -1,6 +1,18 @@
-package austral.src.main.kotlin.interpreter
+import recurses.BinaryExpression
+import recurses.Environment
+import recurses.Expr
+import recurses.Identifier
+import recurses.NumberLiteral
+import recurses.PrintStatement
+import recurses.Program
+import recurses.Stmt
+import recurses.StringLiteral
+import recurses.Variable
+import recurses.VariableDeclaration
+import valueDataclass.NumberValue
+import valueDataclass.StringValue
+import valueDataclass.Value
 
-import austral.src.main.kotlin.commun.*
 
 class Interpreter(private val output: Output) {
 
@@ -12,11 +24,17 @@ class Interpreter(private val output: Output) {
 
     private fun execute(stmt: Stmt) = when (stmt) {
         is VariableDeclaration -> executeDeclaration(stmt)
+        is PrintStatement -> executePrint(stmt)
     }
 
     private fun executeDeclaration(stmt: VariableDeclaration) {
         val value = stmt.value?.let(::evaluate)
         environment.declare(stmt.name, Variable(stmt.type, value))
+    }
+
+    private fun executePrint(stmt: PrintStatement) {
+        val expr = evaluate(stmt.argument)
+        output.write(expr.toString())
     }
 
     fun evaluate(expr: Expr): Value = when (expr) {
