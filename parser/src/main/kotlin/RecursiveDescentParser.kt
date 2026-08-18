@@ -8,6 +8,7 @@ import recurses.Expr
 import recurses.Identifier
 import recurses.NumberLiteral
 import recurses.Position
+import recurses.PrintStatement
 import recurses.StringLiteral
 import recurses.Token
 import recurses.TokenType
@@ -79,6 +80,7 @@ class RecursiveDescentParser : Parser {
 
     private fun parseStatement(): Stmt {
         if (match(TokenType.LET)) return variableDeclaration()
+        else if (check(TokenType.IDENTIFIER) && peek().value.equals("printLn")) return printStatement()
         throw ParseException(peek(), "Expected statement")
     }
 
@@ -97,6 +99,15 @@ class RecursiveDescentParser : Parser {
         consume(TokenType.SEMICOLON, "Expected ';' after declaration")
 
         return VariableDeclaration(name.value, type.value, value, letToken.start)
+    }
+
+    private fun printStatement(): Stmt {
+        val nameToken = advance()
+        consume(TokenType.LEFT_PAREN, "Expected '(' before expression")
+        val arg = expression()
+        consume(TokenType.LEFT_PAREN, "Expected ')' after expression")
+        consume(TokenType.SEMICOLON, "Expected ';' after statement")
+        return PrintStatement(arg, nameToken.start)
     }
 
     // ---------- expression = term, {("+"|"-"), term} ----------
