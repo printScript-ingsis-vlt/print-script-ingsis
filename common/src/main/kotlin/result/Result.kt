@@ -1,4 +1,4 @@
-package austral.src.main.kotlin.commun.result
+package common.src.main.kotlin.result
 
 import austral.src.main.kotlin.commun.Position
 

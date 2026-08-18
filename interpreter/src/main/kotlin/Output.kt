@@ -1,5 +1,3 @@
-package austral.src.main.kotlin.interpreter
-
 interface Output { fun write(text: String) } // --> Con esto se donde escribir cuando el programa imprima
 // sin hacerlo directo en consola para poder testear outputs despues. capaz no esta muy bueno
 

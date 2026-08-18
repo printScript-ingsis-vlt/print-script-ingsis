@@ -1,4 +1,4 @@
-package austral.src.main.kotlin.commun
+package recurses
 
 enum class TokenType {
     LET,
