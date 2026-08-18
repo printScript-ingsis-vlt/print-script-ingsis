@@ -1,17 +1,18 @@
 package austral.src.main.kotlin.parser
 
-import austral.src.main.kotlin.commun.BinaryExpression
-import austral.src.main.kotlin.commun.Expr
-import austral.src.main.kotlin.commun.Identifier
-import austral.src.main.kotlin.commun.NumberLiteral
+import austral.src.main.kotlin.commun.ast.BinaryExpression
+import austral.src.main.kotlin.commun.ast.Expr
+import austral.src.main.kotlin.commun.ast.Identifier
+import austral.src.main.kotlin.commun.ast.NumberLiteral
 import austral.src.main.kotlin.commun.Parser
-import austral.src.main.kotlin.commun.Position
-import austral.src.main.kotlin.commun.Program
-import austral.src.main.kotlin.commun.Stmt
-import austral.src.main.kotlin.commun.StringLiteral
+import austral.src.main.kotlin.commun.ast.Position
+import austral.src.main.kotlin.commun.ast.Program
+import austral.src.main.kotlin.commun.ast.Stmt
+import austral.src.main.kotlin.commun.ast.StringLiteral
 import austral.src.main.kotlin.commun.Token
 import austral.src.main.kotlin.commun.TokenType
-import austral.src.main.kotlin.commun.VariableDeclaration
+import austral.src.main.kotlin.commun.ast.PrintStatement
+import austral.src.main.kotlin.commun.ast.VariableDeclaration
 import austral.src.main.kotlin.commun.result.SyntaxError
 import austral.src.main.kotlin.commun.result.Result
 
@@ -80,6 +81,7 @@ class RecursiveDescentParser : Parser {
 
     private fun parseStatement(): Stmt {
         if (match(TokenType.LET)) return variableDeclaration()
+        else if (check(TokenType.IDENTIFIER) && peek().value.equals("printLn")) return printStatement()
         throw ParseException(peek(), "Expected statement")
     }
 
@@ -98,6 +100,15 @@ class RecursiveDescentParser : Parser {
         consume(TokenType.SEMICOLON, "Expected ';' after declaration")
 
         return VariableDeclaration(name.value, type.value, value, letToken.start)
+    }
+
+    private fun printStatement(): Stmt {
+        val nameToken = advance()
+        consume(TokenType.LEFT_PAREN, "Expected '(' before expression")
+        val arg = expression()
+        consume(TokenType.LEFT_PAREN, "Expected ')' after expression")
+        consume(TokenType.SEMICOLON, "Expected ';' after statement")
+        return PrintStatement(arg, nameToken.start)
     }
 
     // ---------- expression = term, {("+"|"-"), term} ----------

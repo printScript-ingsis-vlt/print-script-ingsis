@@ -1,7 +1,7 @@
 package austral.src.main.kotlin.lexer
 
 import austral.src.main.kotlin.commun.Lexer
-import austral.src.main.kotlin.commun.Position
+import austral.src.main.kotlin.commun.ast.Position
 import austral.src.main.kotlin.commun.Token
 import austral.src.main.kotlin.commun.TokenType
 import austral.src.main.kotlin.commun.result.LexicalError

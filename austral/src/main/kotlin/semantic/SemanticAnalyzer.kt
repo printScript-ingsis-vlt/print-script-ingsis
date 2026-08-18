@@ -1,6 +1,14 @@
 package austral.src.main.kotlin.semantic
 
 import austral.src.main.kotlin.commun.*
+import austral.src.main.kotlin.commun.ast.BinaryExpression
+import austral.src.main.kotlin.commun.ast.Expr
+import austral.src.main.kotlin.commun.ast.Identifier
+import austral.src.main.kotlin.commun.ast.NumberLiteral
+import austral.src.main.kotlin.commun.ast.Position
+import austral.src.main.kotlin.commun.ast.Program
+import austral.src.main.kotlin.commun.ast.StringLiteral
+import austral.src.main.kotlin.commun.ast.VariableDeclaration
 import austral.src.main.kotlin.commun.result.SemanticError
 
 // --> Hace todas las validaciones semanticas, construyendo el environment

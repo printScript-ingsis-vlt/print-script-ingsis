@@ -1,6 +1,6 @@
 package austral.src.main.kotlin.semantic
 
-import austral.src.main.kotlin.commun.Stmt
+import austral.src.main.kotlin.commun.ast.Stmt
 import austral.src.main.kotlin.commun.result.SemanticError
 import austral.src.main.kotlin.commun.Environment
 

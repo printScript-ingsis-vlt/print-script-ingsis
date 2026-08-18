@@ -1,5 +1,7 @@
 package austral.src.main.kotlin.commun
 
+import austral.src.main.kotlin.commun.ast.Position
+
 enum class TokenType {
     LET,
     IDENTIFIER,
