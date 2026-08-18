@@ -1,5 +1,4 @@
 package recurses
-import
 
 data class Variable(val type: String, var value: Value?)
 
