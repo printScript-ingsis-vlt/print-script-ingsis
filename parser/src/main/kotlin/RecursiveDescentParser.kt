@@ -1,19 +1,18 @@
-package austral.src.main.kotlin.parser
-
-import austral.src.main.kotlin.commun.BinaryExpression
-import austral.src.main.kotlin.commun.Expr
-import austral.src.main.kotlin.commun.Identifier
-import austral.src.main.kotlin.commun.NumberLiteral
 import austral.src.main.kotlin.commun.Parser
-import austral.src.main.kotlin.commun.Position
-import austral.src.main.kotlin.commun.Program
-import austral.src.main.kotlin.commun.Stmt
-import austral.src.main.kotlin.commun.StringLiteral
-import austral.src.main.kotlin.commun.Token
-import austral.src.main.kotlin.commun.TokenType
-import austral.src.main.kotlin.commun.VariableDeclaration
-import austral.src.main.kotlin.commun.result.SyntaxError
-import austral.src.main.kotlin.commun.result.Result
+import common.src.main.kotlin.result.Result
+import common.src.main.kotlin.result.SyntaxError
+import recurses.Program
+import recurses.Stmt
+import recurses.BinaryExpression
+import recurses.Expr
+import recurses.Identifier
+import recurses.NumberLiteral
+import recurses.Position
+import recurses.StringLiteral
+import recurses.Token
+import recurses.TokenType
+import recurses.VariableDeclaration
+
 
 class RecursiveDescentParser : Parser {
     private lateinit var tokens: List<Token>

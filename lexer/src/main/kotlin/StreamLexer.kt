@@ -1,14 +1,13 @@
-package austral.src.main.kotlin.lexer
-
 import austral.src.main.kotlin.commun.Lexer
-import austral.src.main.kotlin.commun.Position
-import austral.src.main.kotlin.commun.Token
-import austral.src.main.kotlin.commun.TokenType
-import austral.src.main.kotlin.commun.result.LexicalError
-import austral.src.main.kotlin.commun.result.Result
+import recurses.Position
+import recurses.Token
+import recurses.TokenType
 import java.io.PushbackReader
 import java.io.Reader
 import java.io.StringReader
+import common.src.main.kotlin.result.LexicalError
+import common.src.main.kotlin.result.Result
+
 
 // lexer que lee de un java.io.Reader caracter por caracter, sin volcar la fuente completa a memoria
 class StreamLexer(reader: Reader) : Lexer {
