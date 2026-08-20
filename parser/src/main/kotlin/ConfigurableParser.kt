@@ -1,12 +1,12 @@
-import austral.src.main.kotlin.commun.Parser
-import common.src.main.kotlin.result.Result
-import common.src.main.kotlin.result.SyntaxError
+
 import engine.ParseResult
 import grammar.Grammar
+import interfaces.Parser
 import recurses.Program
 import recurses.Stmt
 import recurses.Position
-
+import result.Result
+import result.SyntaxError
 import recurses.Token
 import recurses.TokenType
 

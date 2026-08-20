@@ -1,9 +1,9 @@
 package engine
 
-import common.src.main.kotlin.result.SyntaxError
 import recurses.Position
 import recurses.Token
 import recurses.TokenType
+import result.SyntaxError
 
 sealed interface ParseResult {
     data class Success(val value: Any?, val next: Int) : ParseResult

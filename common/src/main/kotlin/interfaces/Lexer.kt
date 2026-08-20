@@ -1,9 +1,7 @@
-package austral.src.main.kotlin.commun
-
-
-import common.src.main.kotlin.result.LexicalError
-import common.src.main.kotlin.result.Result
+package interfaces
 import recurses.Token
+import result.Result
+import result.LexicalError
 
 interface Lexer {
     fun hasNext(): Boolean
