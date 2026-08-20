@@ -1,3 +1,5 @@
+package valueDataclass
+
 import kotlin.math.floor
 
 //--> En vez de laburar con los nodos del AST se labura con los values
