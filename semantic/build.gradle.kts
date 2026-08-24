@@ -1,11 +1,8 @@
 
 plugins{
-    kotlin ("jvm")
+    id("austral.quality")
 }
 
-repositories {
-    mavenCentral()
-}
 
 dependencies {
     implementation(project(":common"))
