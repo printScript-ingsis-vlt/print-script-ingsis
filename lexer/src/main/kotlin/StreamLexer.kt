@@ -10,7 +10,8 @@ import common.src.main.kotlin.result.Result
 
 
 // lexer que lee de un java.io.Reader caracter por caracter, sin volcar la fuente completa a memoria
-class StreamLexer(reader: Reader) : Lexer {
+class StreamLexer(reader: Reader, private val keywords: Map<String, TokenType> = DEFAULT_KEYWORDS,
+                  private val singleCharTokens: Map<Char, TokenType> = DEFAULT_SINGLE_CHAR_TOKENS) : Lexer {
 
     // pushbackReader(1) da un "peek" de un caracter sin consumirlo
     private val input = PushbackReader(reader, 1)
@@ -39,11 +40,11 @@ class StreamLexer(reader: Reader) : Lexer {
             return tokenize(StringReader(source))
         }
 
-        private val KEYWORDS = mapOf(
+        private val DEFAULT_KEYWORDS = mapOf(
             "let" to TokenType.LET
         )
 
-        private val SINGLE_CHAR_TOKENS = mapOf(
+        private val DEFAULT_SINGLE_CHAR_TOKENS = mapOf(
             ':' to TokenType.COLON,
             '=' to TokenType.EQUAL,
             ';' to TokenType.SEMICOLON,
@@ -58,6 +59,17 @@ class StreamLexer(reader: Reader) : Lexer {
 
     override fun hasNext(): Boolean = !emittedEof
 
+    override fun tokenize(): Result<List<Token>, LexicalError> {
+        val tokens = mutableListOf<Token>()
+        while (hasNext()) {
+            when (val result = nextToken()) {
+                is Result.Success -> tokens.add(result.value)
+                is Result.Failure -> return Result.Failure(result.error)
+            }
+        }
+        return Result.Success(tokens)
+    }
+
     // despachador: mira el primer char y decide a donde mandarlo
     override fun nextToken(): Result<Token, LexicalError> {
         if (emittedEof) throw NoSuchElementException("El lexer ya devolvió EOF")
@@ -69,7 +81,7 @@ class StreamLexer(reader: Reader) : Lexer {
         val c = readChar() ?: return Result.Success(eof(startPos))
 
         // si el char esta en el dic arma el token
-        SINGLE_CHAR_TOKENS[c]?.let { type ->
+        singleCharTokens[c]?.let { type ->
             return Result.Success(Token(type, c.toString(), startPos, currentPosition()))
         }
 
@@ -169,7 +181,7 @@ class StreamLexer(reader: Reader) : Lexer {
             }
         }
         val text = sb.toString()
-        val type = KEYWORDS[text] ?: TokenType.IDENTIFIER
+        val type = keywords[text] ?: TokenType.IDENTIFIER
         return Token(type, text, startPos, currentPosition())
     }
 }
