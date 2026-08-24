@@ -1,12 +1,9 @@
 #!/usr/bin/env kotlin
 
 plugins {
-    kotlin("jvm")
+    id("austral.quality")
 }
 
-repositories{
-    mavenCentral()
-}
 
 dependencies {
 }

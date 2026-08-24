@@ -1,0 +1,32 @@
+build:
+  maxIssues: 0
+  excludeCorrectable: false
+
+config:
+  validation: true
+
+processors:
+  active: true
+
+console-reports:
+  active: true
+
+output-reports:
+  active: true
+
+# ============================================
+# 2 reglas personalizadas (ejemplo)
+# ============================================
+
+complexity:
+  LongMethod:
+    active: true
+    threshold: 40
+
+style:
+  MagicNumber:
+    active: true
+
+  ReturnCount:
+    active: true
+    max: 2
