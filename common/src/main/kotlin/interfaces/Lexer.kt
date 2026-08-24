@@ -8,4 +8,5 @@ import recurses.Token
 interface Lexer {
     fun hasNext(): Boolean
     fun nextToken(): Result<Token, LexicalError>
+    fun tokenize(): Result<List<Token>, LexicalError>
 }
