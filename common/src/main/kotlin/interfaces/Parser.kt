@@ -1,8 +1,8 @@
-package austral.src.main.kotlin.commun
+package interfaces
 
-import common.src.main.kotlin.result.Result
-import common.src.main.kotlin.result.SyntaxError
 import recurses.Program
+import result.Result
+import result.SyntaxError
 import recurses.Token
 
 interface Parser {

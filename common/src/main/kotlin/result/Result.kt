@@ -1,6 +1,6 @@
-package common.src.main.kotlin.result
+package result
 
-import austral.src.main.kotlin.commun.Position
+import recurses.Position
 
 sealed interface Result<out T, out E> {
     data class Success<out T>(val value: T) : Result<T, Nothing>
