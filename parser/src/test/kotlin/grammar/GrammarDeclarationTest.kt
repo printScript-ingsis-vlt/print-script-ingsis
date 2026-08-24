@@ -11,6 +11,76 @@ import tok
 class GrammarDeclarationTest {
 
     @Test
+    fun `assignment with number literal`() {
+        // a = 10;
+        val tokens = listOf(
+            tok(IDENTIFIER, "a"),
+            tok(EQUAL, "="),
+            tok(NUMBER_LITERAL, "10"),
+            tok(SEMICOLON, ";"),
+            tok(EOF)
+        )
+
+        val result = Grammar.assignment.parse(tokens, 0)
+
+        assertTrue(result is ParseResult.Success)
+        val stmt = (result as ParseResult.Success).value as Assignment
+
+        assertEquals("a", stmt.name)
+        assertTrue(stmt.value is NumberLiteral)
+        assertEquals(10.0, (stmt.value as NumberLiteral).value)
+        assertEquals(4, result.next)
+    }
+
+    @Test
+    fun `assignment with identifier`() {
+        // a = b;
+        val tokens = listOf(
+            tok(IDENTIFIER, "a"),
+            tok(EQUAL, "="),
+            tok(IDENTIFIER, "b"),
+            tok(SEMICOLON, ";"),
+            tok(EOF)
+        )
+
+        val result = Grammar.assignment.parse(tokens, 0)
+
+        assertTrue(result is ParseResult.Success)
+        val stmt = (result as ParseResult.Success).value as Assignment
+
+        assertEquals("a", stmt.name)
+        assertTrue(stmt.value is Identifier)
+        assertEquals("b", (stmt.value as Identifier).name)
+        assertEquals(4, result.next)
+    }
+
+    @Test
+    fun `assignment fails when missing equal`() {
+        val tokens = listOf(
+            tok(IDENTIFIER, "a"),
+            tok(NUMBER_LITERAL, "10"),
+            tok(SEMICOLON, ";"),
+            tok(EOF)
+        )
+
+        val result = Grammar.assignment.parse(tokens, 0)
+        assertTrue(result is ParseResult.Failure)
+    }
+
+    @Test
+    fun `assignment fails when missing semicolon`() {
+        val tokens = listOf(
+            tok(IDENTIFIER, "a"),
+            tok(EQUAL, "="),
+            tok(NUMBER_LITERAL, "10"),
+            tok(EOF)
+        )
+
+        val result = Grammar.assignment.parse(tokens, 0)
+        assertTrue(result is ParseResult.Failure)
+    }
+
+    @Test
     fun `declaration with initializer`() {
         val tokens = listOf(
             tok(LET, "let"),
