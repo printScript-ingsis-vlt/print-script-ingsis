@@ -6,6 +6,7 @@ import engine.choice
 import engine.opt
 import engine.seq
 import engine.token
+import recurses.Assignment
 import recurses.Expr
 import recurses.Identifier
 import recurses.NumberLiteral
@@ -75,4 +76,29 @@ object Grammar {
             position = letToken.start
         )
     }
+    val assignment: Rule = action(
+        seq(
+            IDENTIFIER,     // 0 → name
+            EQUAL,          // 1
+            expression,     // 2 → value
+            SEMICOLON       // 3
+        )
+    ) { values ->
+        @Suppress("UNCHECKED_CAST")
+        val list = values as List<Any>
+
+        val nameToken = list[0] as Token
+        val value = list[2] as Expr
+
+        Assignment(
+            name = nameToken.value,
+            value = value,
+            position = nameToken.start
+        )
+    }
+
+    val statement: Rule = choice(
+        declaration,
+        assignment
+    )
 }

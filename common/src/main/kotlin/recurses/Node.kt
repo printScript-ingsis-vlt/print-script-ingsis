@@ -33,6 +33,12 @@ data class PrintStatement(
     override val position: Position
 ) : Stmt
 
+data class Assignment(
+    val name: String,
+    val value: Expr,
+    override val position: Position
+) : Stmt
+
 data class NumberLiteral(val value: Double, override val position: Position) : Expr
 data class StringLiteral(val value: String, override val position: Position) : Expr
 data class Identifier(val name: String, override val position: Position) : Expr
