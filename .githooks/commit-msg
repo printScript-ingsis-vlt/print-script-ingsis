@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# Archivo con el mensaje de commit temporal
+COMMIT_MSG_FILE=$1
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+# Expresión regular para validar: feat|fix|docs|style|refactor|test|chore|build
+REGEX="^(feat|fix|docs|style|refactor|test|chore|build)(\(.*\))?: .+"
+
+if ! echo "$COMMIT_MSG" | grep -qE "$REGEX"; then
+    echo "❌ Error: El mensaje de commit no respeta la convención."
+    echo ""
+    echo "Formato requerido: [type]: [description]"
+    echo "Tipos válidos: feat, fix, docs, style, refactor, test, chore, build"
+    echo "Ejemplo: feat(auth): add Google login"
+    echo ""
+    exit 1
+fi
+
+exit 0
+
