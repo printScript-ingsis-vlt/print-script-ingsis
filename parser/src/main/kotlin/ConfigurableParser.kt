@@ -2,16 +2,15 @@
 import engine.ParseResult
 import grammar.Grammar
 import interfaces.Parser
+import recurses.Position
 import recurses.Program
 import recurses.Stmt
-import recurses.Position
-import result.Result
-import result.SyntaxError
 import recurses.Token
 import recurses.TokenType
+import result.Result
+import result.SyntaxError
 
 class ConfigurableParser : Parser {
-
     override fun parse(line: List<Token>): Result<Program, List<SyntaxError>> {
         val errors = mutableListOf<SyntaxError>()
         val statements = mutableListOf<Stmt>()
@@ -29,7 +28,8 @@ class ConfigurableParser : Parser {
                     while (pos < line.size &&
                         line[pos].type != TokenType.SEMICOLON &&
                         line[pos].type != TokenType.LET &&
-                        line[pos].type != TokenType.EOF) {
+                        line[pos].type != TokenType.EOF
+                    ) {
                         pos++
                     }
                     if (pos < line.size && line[pos].type == TokenType.SEMICOLON) pos++
@@ -41,8 +41,8 @@ class ConfigurableParser : Parser {
             Result.Success(
                 Program(
                     position = line.firstOrNull()?.start ?: Position(0, 0),
-                    statements = statements
-                )
+                    statements = statements,
+                ),
             )
         } else {
             Result.Failure(errors)

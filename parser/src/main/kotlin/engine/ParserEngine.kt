@@ -7,6 +7,7 @@ import result.SyntaxError
 
 sealed interface ParseResult {
     data class Success(val value: Any?, val next: Int) : ParseResult
+
     data class Failure(val error: SyntaxError) : ParseResult
 }
 
@@ -14,12 +15,18 @@ sealed interface ParseResult {
 // Reglas
 // ------------------------------------------------------------
 sealed interface Rule {
-    fun parse(tokens: List<Token>, pos: Int): ParseResult
+    fun parse(
+        tokens: List<Token>,
+        pos: Int,
+    ): ParseResult
 }
 
 /** Secuencia: A then B then C */
 data class Seq(val rules: List<Rule>) : Rule {
-    override fun parse(tokens: List<Token>, pos: Int): ParseResult {
+    override fun parse(
+        tokens: List<Token>,
+        pos: Int,
+    ): ParseResult {
         val values = mutableListOf<Any?>()
         var current = pos
 
@@ -38,7 +45,10 @@ data class Seq(val rules: List<Rule>) : Rule {
 
 /** Alternativa: A or B or C */
 data class Choice(val alternatives: List<Rule>) : Rule {
-    override fun parse(tokens: List<Token>, pos: Int): ParseResult {
+    override fun parse(
+        tokens: List<Token>,
+        pos: Int,
+    ): ParseResult {
         var lastError: SyntaxError? = null
 
         for (alt in alternatives) {
@@ -48,14 +58,17 @@ data class Choice(val alternatives: List<Rule>) : Rule {
             }
         }
         return ParseResult.Failure(
-            lastError ?: SyntaxError(tokens.getOrNull(pos)?.start ?: Position(0, 0), "No alternative matched")
+            lastError ?: SyntaxError(tokens.getOrNull(pos)?.start ?: Position(0, 0), "No alternative matched"),
         )
     }
 }
 
 /** Cero o más */
 data class Many(val rule: Rule) : Rule {
-    override fun parse(tokens: List<Token>, pos: Int): ParseResult {
+    override fun parse(
+        tokens: List<Token>,
+        pos: Int,
+    ): ParseResult {
         val values = mutableListOf<Any?>()
         var current = pos
 
@@ -74,7 +87,10 @@ data class Many(val rule: Rule) : Rule {
 
 /** Opcional */
 data class Opt(val rule: Rule) : Rule {
-    override fun parse(tokens: List<Token>, pos: Int): ParseResult {
+    override fun parse(
+        tokens: List<Token>,
+        pos: Int,
+    ): ParseResult {
         return when (val result = rule.parse(tokens, pos)) {
             is ParseResult.Success -> result
             is ParseResult.Failure -> ParseResult.Success(null, pos) // no consumió nada
@@ -84,7 +100,10 @@ data class Opt(val rule: Rule) : Rule {
 
 /** Terminal por TokenType */
 data class TokenRule(val type: TokenType, val expected: String = type.name) : Rule {
-    override fun parse(tokens: List<Token>, pos: Int): ParseResult {
+    override fun parse(
+        tokens: List<Token>,
+        pos: Int,
+    ): ParseResult {
         if (pos >= tokens.size) {
             return ParseResult.Failure(SyntaxError(Position(0, 0), "Unexpected end of input, expected $expected"))
         }
@@ -99,7 +118,10 @@ data class TokenRule(val type: TokenType, val expected: String = type.name) : Ru
 
 /** Acción: transforma el resultado de una regla en un nodo del AST */
 data class Action(val rule: Rule, val transform: (Any?) -> Any?) : Rule {
-    override fun parse(tokens: List<Token>, pos: Int): ParseResult {
+    override fun parse(
+        tokens: List<Token>,
+        pos: Int,
+    ): ParseResult {
         return when (val result = rule.parse(tokens, pos)) {
             is ParseResult.Success -> ParseResult.Success(transform(result.value), result.next)
             is ParseResult.Failure -> result
@@ -109,8 +131,19 @@ data class Action(val rule: Rule, val transform: (Any?) -> Any?) : Rule {
 
 // Helpers de construcción (azúcar sintáctico)
 fun seq(vararg rules: Rule) = Seq(rules.toList())
+
 fun choice(vararg rules: Rule) = Choice(rules.toList())
+
 fun many(rule: Rule) = Many(rule)
+
 fun opt(rule: Rule) = Opt(rule)
-fun token(type: TokenType, expected: String = type.name) = TokenRule(type, expected)
-fun action(rule: Rule, transform: (Any?) -> Any?) = Action(rule, transform)
+
+fun token(
+    type: TokenType,
+    expected: String = type.name,
+) = TokenRule(type, expected)
+
+fun action(
+    rule: Rule,
+    transform: (Any?) -> Any?,
+) = Action(rule, transform)

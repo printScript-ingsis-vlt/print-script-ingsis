@@ -1,23 +1,25 @@
 import austral.src.main.kotlin.commun.Lexer
+import common.src.main.kotlin.result.LexicalError
+import common.src.main.kotlin.result.Result
 import recurses.Position
 import recurses.Token
 import recurses.TokenType
 import java.io.PushbackReader
 import java.io.Reader
 import java.io.StringReader
-import common.src.main.kotlin.result.LexicalError
-import common.src.main.kotlin.result.Result
-
 
 // lexer que lee de un java.io.Reader caracter por caracter, sin volcar la fuente completa a memoria
-class StreamLexer(reader: Reader, private val keywords: Map<String, TokenType> = DEFAULT_KEYWORDS,
-                  private val singleCharTokens: Map<Char, TokenType> = DEFAULT_SINGLE_CHAR_TOKENS) : Lexer {
-
+class StreamLexer(
+    reader: Reader,
+    private val keywords: Map<String, TokenType> = DEFAULT_KEYWORDS,
+    private val singleCharTokens: Map<Char, TokenType> = DEFAULT_SINGLE_CHAR_TOKENS,
+) : Lexer {
     // pushbackReader(1) da un "peek" de un caracter sin consumirlo
     private val input = PushbackReader(reader, 1)
 
     private var line = 1
     private var column = 1
+
     // flag que indica cuadno se devuelve el token de fin de archivo
     private var emittedEof = false
 
@@ -40,21 +42,23 @@ class StreamLexer(reader: Reader, private val keywords: Map<String, TokenType> =
             return tokenize(StringReader(source))
         }
 
-        private val DEFAULT_KEYWORDS = mapOf(
-            "let" to TokenType.LET
-        )
+        private val DEFAULT_KEYWORDS =
+            mapOf(
+                "let" to TokenType.LET,
+            )
 
-        private val DEFAULT_SINGLE_CHAR_TOKENS = mapOf(
-            ':' to TokenType.COLON,
-            '=' to TokenType.EQUAL,
-            ';' to TokenType.SEMICOLON,
-            '+' to TokenType.PLUS,
-            '-' to TokenType.MINUS,
-            '*' to TokenType.STAR,
-            '/' to TokenType.SLASH,
-            '(' to TokenType.LEFT_PAREN,
-            ')' to TokenType.RIGHT_PAREN
-        )
+        private val DEFAULT_SINGLE_CHAR_TOKENS =
+            mapOf(
+                ':' to TokenType.COLON,
+                '=' to TokenType.EQUAL,
+                ';' to TokenType.SEMICOLON,
+                '+' to TokenType.PLUS,
+                '-' to TokenType.MINUS,
+                '*' to TokenType.STAR,
+                '/' to TokenType.SLASH,
+                '(' to TokenType.LEFT_PAREN,
+                ')' to TokenType.RIGHT_PAREN,
+            )
     }
 
     override fun hasNext(): Boolean = !emittedEof
@@ -139,11 +143,15 @@ class StreamLexer(reader: Reader, private val keywords: Map<String, TokenType> =
     //  reglas léxicas
 
     // única regla léxica que puede fallar (falta la comilla de cierre)
-    private fun readString(quote: Char, startPos: Position): Result<Token, LexicalError> {
+    private fun readString(
+        quote: Char,
+        startPos: Position,
+    ): Result<Token, LexicalError> {
         val sb = StringBuilder()
         while (true) {
-            val c = readChar()
-                ?: return Result.Failure(LexicalError(startPos, "String sin cerrar"))
+            val c =
+                readChar()
+                    ?: return Result.Failure(LexicalError(startPos, "String sin cerrar"))
             if (c == quote) break
             if (c == '\n') {
                 return Result.Failure(LexicalError(startPos, "String sin cerrar antes de fin de línea"))
@@ -153,7 +161,10 @@ class StreamLexer(reader: Reader, private val keywords: Map<String, TokenType> =
         return Result.Success(Token(TokenType.STRING_LITERAL, sb.toString(), startPos, currentPosition()))
     }
 
-    private fun readNumber(first: Char, startPos: Position): Token {
+    private fun readNumber(
+        first: Char,
+        startPos: Position,
+    ): Token {
         val sb = StringBuilder().append(first)
         var sawDot = false
         while (true) {
@@ -170,7 +181,10 @@ class StreamLexer(reader: Reader, private val keywords: Map<String, TokenType> =
         return Token(TokenType.NUMBER_LITERAL, sb.toString(), startPos, currentPosition())
     }
 
-    private fun readIdentifierOrKeyword(first: Char, startPos: Position): Token {
+    private fun readIdentifierOrKeyword(
+        first: Char,
+        startPos: Position,
+    ): Token {
         val sb = StringBuilder().append(first)
         while (true) {
             val c = peekChar() ?: break
