@@ -6,7 +6,6 @@ import recurses.TokenType
 import tok
 
 class EngineTest {
-
     // ---------- TokenRule ----------
     @Test
     fun `TokenRule success`() {
@@ -34,15 +33,17 @@ class EngineTest {
     // ---------- Seq ----------
     @Test
     fun `Seq success`() {
-        val rule = seq(
-            token(TokenType.LET),
-            token(TokenType.IDENTIFIER)
-        )
-        val tokens = listOf(
-            tok(TokenType.LET, "let"),
-            tok(TokenType.IDENTIFIER, "x"),
-            tok(TokenType.EOF)
-        )
+        val rule =
+            seq(
+                token(TokenType.LET),
+                token(TokenType.IDENTIFIER),
+            )
+        val tokens =
+            listOf(
+                tok(TokenType.LET, "let"),
+                tok(TokenType.IDENTIFIER, "x"),
+                tok(TokenType.EOF),
+            )
 
         val result = rule.parse(tokens, 0) as ParseResult.Success
         val values = result.value as List<*>
@@ -53,15 +54,17 @@ class EngineTest {
 
     @Test
     fun `Seq failure on second rule`() {
-        val rule = seq(
-            token(TokenType.LET),
-            token(TokenType.IDENTIFIER)
-        )
-        val tokens = listOf(
-            tok(TokenType.LET, "let"),
-            tok(TokenType.NUMBER_LITERAL, "42"),
-            tok(TokenType.EOF)
-        )
+        val rule =
+            seq(
+                token(TokenType.LET),
+                token(TokenType.IDENTIFIER),
+            )
+        val tokens =
+            listOf(
+                tok(TokenType.LET, "let"),
+                tok(TokenType.NUMBER_LITERAL, "42"),
+                tok(TokenType.EOF),
+            )
 
         val result = rule.parse(tokens, 0)
         assertTrue(result is ParseResult.Failure)
@@ -91,10 +94,11 @@ class EngineTest {
     // ---------- Choice ----------
     @Test
     fun `Choice takes first success`() {
-        val rule = choice(
-            token(TokenType.LET),
-            token(TokenType.IDENTIFIER)
-        )
+        val rule =
+            choice(
+                token(TokenType.LET),
+                token(TokenType.IDENTIFIER),
+            )
         val tokens = listOf(tok(TokenType.IDENTIFIER, "x"), tok(TokenType.EOF))
 
         val result = rule.parse(tokens, 0) as ParseResult.Success
@@ -103,14 +107,16 @@ class EngineTest {
 
     @Test
     fun `Choice all fail`() {
-        val rule = choice(
-            token(TokenType.LET),
-            token(TokenType.SEMICOLON)      // ← uno que sí tengas
-        )
-        val tokens = listOf(
-            tok(TokenType.IDENTIFIER, "x"),
-            tok(TokenType.EOF)
-        )
+        val rule =
+            choice(
+                token(TokenType.LET),
+                token(TokenType.SEMICOLON), // ← uno que sí tengas
+            )
+        val tokens =
+            listOf(
+                tok(TokenType.IDENTIFIER, "x"),
+                tok(TokenType.EOF),
+            )
 
         val result = rule.parse(tokens, 0)
         assertTrue(result is ParseResult.Failure)
@@ -119,9 +125,10 @@ class EngineTest {
     // ---------- Action ----------
     @Test
     fun `Action transforms value`() {
-        val rule = action(token(TokenType.NUMBER_LITERAL)) { value ->
-            (value as recurses.Token).value.toDouble()
-        }
+        val rule =
+            action(token(TokenType.NUMBER_LITERAL)) { value ->
+                (value as recurses.Token).value.toDouble()
+            }
         val tokens = listOf(tok(TokenType.NUMBER_LITERAL, "42"), tok(TokenType.EOF))
 
         val result = rule.parse(tokens, 0) as ParseResult.Success

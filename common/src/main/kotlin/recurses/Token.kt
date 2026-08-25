@@ -7,8 +7,7 @@ enum class TokenType {
     STRING,
     LITERAL,
     ASSIGNMENT,
-    EOF // end of file
-    ,
+    EOF, // end of file
     NUMBER_LITERAL,
     STRING_LITERAL,
     COLON,
@@ -19,13 +18,12 @@ enum class TokenType {
     STAR,
     SLASH,
     LEFT_PAREN,
-    RIGHT_PAREN
+    RIGHT_PAREN,
 }
-
 
 data class Token(
     val type: TokenType,
     val value: String,
     val start: Position,
-    val end: Position
+    val end: Position,
 )
