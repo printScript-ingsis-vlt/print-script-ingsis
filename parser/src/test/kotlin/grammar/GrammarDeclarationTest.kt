@@ -3,7 +3,10 @@ package grammar
 import engine.ParseResult
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import recurses.*
+import recurses.Assignment
+import recurses.NumberLiteral
+import recurses.Identifier
+import recurses.VariableDeclaration
 import recurses.TokenType.*
 import tok
 

@@ -1,6 +1,5 @@
 package recurses
-
-import com.sun.jdi.Value
+import recurses.valuedataclass.Value
 
 data class Variable(val type: String, var value: Value?)
 
@@ -18,4 +17,14 @@ class Environment {
 
     // Busca si existe una variable declarada, medio bot el nombre
     fun lookup(name: String): Variable? = variables[name]
+
+    fun assign(
+        name: String,
+        value: Value,
+    ) {
+        val variable =
+            variables [name] ?: throw
+                NoSuchElementException("Variable $name not found")
+        variable.value = value
+    }
 }
