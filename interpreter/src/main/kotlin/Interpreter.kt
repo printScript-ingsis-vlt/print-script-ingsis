@@ -10,9 +10,9 @@ import recurses.Stmt
 import recurses.StringLiteral
 import recurses.Variable
 import recurses.VariableDeclaration
-import valuedataclass.NumberValue
-import valuedataclass.StringValue
-import valuedataclass.Value
+import recurses.valuedataclass.NumberValue
+import recurses.valuedataclass.StringValue
+import recurses.valuedataclass.Value
 
 class Interpreter(private val output: Output) {
     private val environment = Environment()
@@ -42,7 +42,6 @@ class Interpreter(private val output: Output) {
         val expr = evaluate(stmt.argument)
         output.write(expr.toString())
     }
-
 
     fun evaluate(expr: Expr): Value =
         when (expr) {

@@ -47,14 +47,20 @@ object Grammar {
     val declaration: Rule =
         action(
             seq(
-                LET, // 0
-                IDENTIFIER, // 1  → name
-                COLON, // 2
-                IDENTIFIER, // 3  → type
-                opt( // 4  → value (puede ser null)
+                // 0
+                LET,
+                // 1 → name
+                IDENTIFIER,
+                // 2
+                COLON,
+                // 3 → type
+                IDENTIFIER,
+                // 4 → value (puede ser null)
+                opt(
                     seq(EQUAL, expression),
                 ),
-                SEMICOLON, // 5
+                // 5
+                SEMICOLON,
             ),
         ) { values ->
             @Suppress("UNCHECKED_CAST")
@@ -67,7 +73,8 @@ object Grammar {
             val value: Expr? =
                 when (val opt = list[4]) {
                     null -> null
-                    is List<*> -> opt[1] as Expr // el segundo elemento de [EQUAL, expression]
+                    // el segundo elemento de [EQUAL, expression]
+                    is List<*> -> opt[1] as Expr
                     else -> null
                 }
 
@@ -78,13 +85,18 @@ object Grammar {
                 position = letToken.start,
             )
         }
+
     val assignment: Rule =
         action(
             seq(
-                IDENTIFIER, // 0 → name
-                EQUAL, // 1
-                expression, // 2 → value
-                SEMICOLON, // 3
+                // 0 → name
+                IDENTIFIER,
+                // 1
+                EQUAL,
+                // 2 → value
+                expression,
+                // 3
+                SEMICOLON,
             ),
         ) { values ->
             @Suppress("UNCHECKED_CAST")
