@@ -2,6 +2,7 @@ package rules
 
 import SemanticRule
 import recurses.*
+import recurses.valuedataclass.NumberValue
 import result.SemanticError
 
 class ExpressionValidator : SemanticRule { // --> Valido operadores y que sea coherentes
@@ -28,17 +29,16 @@ class ExpressionValidator : SemanticRule { // --> Valido operadores y que sea co
                     val rightType = resolveType(expr.right, env)
 
                     noStringsOperation(expr, leftType, rightType, errors)
-
                     noDivisionByZero(expr, errors, env)
                 }
 
-                checkExpression(expr.left, env)
-                checkExpression(expr.right, env)
+                // --> Recursion a los hijos
+                errors.addAll(checkExpression(expr.left, env))
+                errors.addAll(checkExpression(expr.right, env))
             }
-            is Identifier -> {}
-            is NumberLiteral -> {}
-            is StringLiteral -> {}
+            is Identifier, is NumberLiteral, is StringLiteral -> {}
         }
+        return errors;
     }
 
     private fun noDivisionByZero(
