@@ -15,8 +15,22 @@ class VariableValidator : SemanticRule { // --> Valida que las variables existan
                     checkExpression(value, environment, errors)
                 }
             }
+            is PrintStatement -> { checkExpression(stmt.argument, environment, errors) }
+            is Assignment -> { assiCase(environment, stmt, errors) }
         }
         return errors
+    }
+
+    private fun assiCase(
+        environment: Environment,
+        stmt: Assignment,
+        errors: MutableList<SemanticError>
+    ) {
+        val variable = environment.lookup(stmt.name)
+        if (variable == null) {
+            errors.add(SemanticError(stmt.position, "Variable '${stmt.name}' is not declared"))
+        }
+        checkExpression(stmt.value, environment, errors)
     }
 
     private fun checkExpression(expr: Expr, env: Environment, errors: MutableList<SemanticError>) {
