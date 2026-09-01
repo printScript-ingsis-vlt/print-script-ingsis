@@ -80,16 +80,16 @@ class StreamLexer(
 
         skipWhitespace()
 
-        val startPos = currentPosition()
+        val startPos = Position(line, column)
         // lee un char, si no hay más corta devolviendo EOF
         val c = readChar() ?: return Result.Success(eof(startPos))
 
         // si el char esta en el dic arma el token
-        singleCharTokens[c]?.let { type ->
-            return Result.Success(Token(type, c.toString(), startPos, currentPosition()))
-        }
-
         return when {
+            c in singleCharTokens -> {
+                val token = Token(singleCharTokens[c]!!, c.toString(), startPos, Position(line, column))
+                Result.Success(token)
+            }
             c == '"' || c == '\'' -> readString(c, startPos)
             c.isDigit() -> Result.Success(readNumber(c, startPos))
             c.isLetter() || c == '_' -> Result.Success(readIdentifierOrKeyword(c, startPos))
@@ -98,8 +98,6 @@ class StreamLexer(
     }
 
     // funciones de bajo nivel del stream
-
-    private fun currentPosition(): Position = Position(line, column)
 
     // lee un caracter del stream y actualiza línea/columna. null si es EOF.
     private fun readChar(): Char? {
@@ -132,11 +130,8 @@ class StreamLexer(
     private fun skipWhitespace() {
         while (true) {
             val c = peekChar() ?: return
-            if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
-                readChar()
-            } else {
-                return
-            }
+            if (c !in " \t\r\n") return
+            readChar()
         }
     }
 
@@ -148,17 +143,23 @@ class StreamLexer(
         startPos: Position,
     ): Result<Token, LexicalError> {
         val sb = StringBuilder()
-        while (true) {
-            val c =
-                readChar()
-                    ?: return Result.Failure(LexicalError(startPos, "String sin cerrar"))
-            if (c == quote) break
-            if (c == '\n') {
-                return Result.Failure(LexicalError(startPos, "String sin cerrar antes de fin de línea"))
+        var result: Result<Token, LexicalError>? = null
+        while (result == null) {
+            val c = readChar()
+            result = when {
+                c == null -> Result.Failure(LexicalError(startPos, "String sin cerrar"))
+                c == quote -> {
+                    val token = Token(TokenType.STRING_LITERAL, sb.toString(), startPos, Position(line, column))
+                    Result.Success(token)
+                }
+                c == '\n' -> Result.Failure(LexicalError(startPos, "String sin cerrar antes de fin de línea"))
+                else -> {
+                    sb.append(c)
+                    null
+                }
             }
-            sb.append(c)
         }
-        return Result.Success(Token(TokenType.STRING_LITERAL, sb.toString(), startPos, currentPosition()))
+        return result
     }
 
     private fun readNumber(
@@ -175,10 +176,10 @@ class StreamLexer(
                     sawDot = true
                     sb.append(readChar())
                 }
-                else -> return Token(TokenType.NUMBER_LITERAL, sb.toString(), startPos, currentPosition())
+                else -> return Token(TokenType.NUMBER_LITERAL, sb.toString(), startPos, Position(line, column))
             }
         }
-        return Token(TokenType.NUMBER_LITERAL, sb.toString(), startPos, currentPosition())
+        return Token(TokenType.NUMBER_LITERAL, sb.toString(), startPos, Position(line, column))
     }
 
     private fun readIdentifierOrKeyword(
@@ -187,15 +188,12 @@ class StreamLexer(
     ): Token {
         val sb = StringBuilder().append(first)
         while (true) {
-            val c = peekChar() ?: break
-            if (c.isLetterOrDigit() || c == '_') {
-                sb.append(readChar())
-            } else {
-                break
-            }
+            val c = peekChar()
+            if (c == null || (!c.isLetterOrDigit() && c != '_')) break
+            sb.append(readChar())
         }
         val text = sb.toString()
         val type = keywords[text] ?: TokenType.IDENTIFIER
-        return Token(type, text, startPos, currentPosition())
+        return Token(type, text, startPos, Position(line, column))
     }
 }
