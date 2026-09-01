@@ -13,7 +13,7 @@ class DeclarationValidator : SemanticRule { // --> Valida los tipos y que el val
                 vdCase(stmt, errors, environment)
             }
             is PrintStatement -> {
-                psCase(stmt, errors, environment)
+                // --> Print() acepta cualquier tipo valido
             }
             is Assignment -> {
                 assiCase(stmt, errors, environment)
@@ -57,19 +57,18 @@ class DeclarationValidator : SemanticRule { // --> Valida los tipos y que el val
         }
     }
 
-    private fun psCase(
-        stmt: PrintStatement,
-        errors: MutableList<SemanticError>,
-        environment: Environment
-    ) {
-
-    }
-
     private fun assiCase(
         stmt: Assignment,
         errors: MutableList<SemanticError>,
         environment: Environment
     ) {
+        val variable = environment.lookup(stmt.name)
+        if (variable != null) {
+            val valueType = resolveType(stmt.value, environment)
+            if (valueType != null && valueType != variable.type) {
+                errors.add(SemanticError(stmt.position, "Cannot assign $valueType to ${variable.type}"))
+            }
+        }
 
     }
 }
