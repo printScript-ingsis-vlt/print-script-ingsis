@@ -1,7 +1,5 @@
-package austral.src.main.kotlin.semantic
-
-import austral.src.main.kotlin.commun.*
-import austral.src.main.kotlin.commun.result.SemanticError
+import recurses.*
+import result.SemanticError
 
 // --> Hace todas las validaciones semanticas, construyendo el environment
 class SemanticAnalyzer(private val rules: List<SemanticRule>) {

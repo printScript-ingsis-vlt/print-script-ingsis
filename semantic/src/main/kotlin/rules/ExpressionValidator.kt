@@ -1,56 +1,72 @@
-package austral.src.main.kotlin.semantic.rules
+package rules
 
-import austral.src.main.kotlin.commun.*
-import austral.src.main.kotlin.commun.result.SemanticError
-import austral.src.main.kotlin.interpreter.*
-import austral.src.main.kotlin.semantic.SemanticRule
+import SemanticRule
+import recurses.*
+import result.SemanticError
 
 class ExpressionValidator : SemanticRule { // --> Valido operadores y que sea coherentes
 
     override fun check(stmt: Stmt, environment: Environment): List<SemanticError> {
-        val errors = mutableListOf<SemanticError>()
-        when (stmt) {
-            is VariableDeclaration -> {
-                if (stmt.value != null) {
-                    checkExpression(stmt.value, environment, errors)
-                }
-            }
-        }
-        return errors
+        return stmt.getExpressions().flatMap { checkExpression(it, environment) }
     }
 
-    private fun checkExpression(expr: Expr, env: Environment, errors: MutableList<SemanticError>) {
+    fun Stmt.getExpressions(): List<Expr> = when (this) {
+        is VariableDeclaration -> listOfNotNull(this.value)
+        is Assignment -> listOf(this.value)
+        is PrintStatement -> listOf(this.argument)
+    }
+
+    private fun checkExpression(expr: Expr, env: Environment): List<SemanticError>  {
+        var errors = mutableListOf<SemanticError>()
         when (expr) {
             is BinaryExpression -> {
+                // --> Operador no valido
                 if (expr.operator !in setOf("+", "-", "*", "/")) {
                     errors.add(SemanticError(expr.position, "Unknown operator '${expr.operator}'"))
                 } else {
                     val leftType = resolveType(expr.left, env)
                     val rightType = resolveType(expr.right, env)
 
-                    if (expr.operator != "+" && (leftType != "number" || rightType != "number")) {
-                        errors.add(
-                            SemanticError(
-                                expr.position,
-                                "Operator '${expr.operator}' requires operand"
-                            )
-                        )
-                    }
+                    noStringsOperation(expr, leftType, rightType, errors)
 
-                    if (expr.operator == "/" && errors.none { it.position == expr.position }) {
-                        val rightValue = evaluateConstant(expr.right, env)
-                        if (rightValue == 0.0) {
-                            errors.add(SemanticError(expr.position, "Division by zero"))
-                        }
-                    }
+                    noDivisionByZero(expr, errors, env)
                 }
 
-                checkExpression(expr.left, env, errors)
-                checkExpression(expr.right, env, errors)
+                checkExpression(expr.left, env)
+                checkExpression(expr.right, env)
             }
             is Identifier -> {}
             is NumberLiteral -> {}
             is StringLiteral -> {}
+        }
+    }
+
+    private fun noDivisionByZero(
+        expr: BinaryExpression,
+        errors: MutableList<SemanticError>,
+        env: Environment
+    ) {
+        if (expr.operator == "/" && errors.none { it.position == expr.position }) {
+            val rightValue = evaluateConstant(expr.right, env)
+            if (rightValue == 0.0) {
+                errors.add(SemanticError(expr.position, "Division by zero"))
+            }
+        }
+    }
+
+    private fun noStringsOperation(
+        expr: BinaryExpression,
+        leftType: String?,
+        rightType: String?,
+        errors: MutableList<SemanticError>
+    ) {
+        if (expr.operator != "+" && (leftType != "number" || rightType != "number")) {
+            errors.add(
+                SemanticError(
+                    expr.position,
+                    "Operator '${expr.operator}' requires operand"
+                )
+            )
         }
     }
 
