@@ -1,9 +1,9 @@
-import austral.src.main.kotlin.commun.Lexer
-import common.src.main.kotlin.result.LexicalError
-import common.src.main.kotlin.result.Result
+import interfaces.Lexer
 import recurses.Position
 import recurses.Token
 import recurses.TokenType
+import result.LexicalError
+import result.Result
 import java.io.PushbackReader
 import java.io.Reader
 import java.io.StringReader

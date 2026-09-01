@@ -1,0 +1,16 @@
+#!/bin/sh
+
+echo "🔍 Ejecutando ./gradlew check antes del commit..."
+
+./gradlew check
+
+STATUS=$?
+
+if [ $STATUS -ne 0 ]; then
+    echo "❌ Error: ./gradlew check falló. El commit fue abortado."
+    exit $STATUS
+fi
+
+echo "✅ Verificaciones de Gradle completadas con éxito."
+exit 0
+
