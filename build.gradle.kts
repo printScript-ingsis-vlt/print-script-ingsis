@@ -1,10 +1,39 @@
+import org.gradle.api.publish.PublishingExtension
+import org.gradle.api.publish.maven.MavenPublication
 plugins {
     // vacío
 }
 
 subprojects {
+    apply(plugin = "maven-publish")
+
     repositories {
         mavenCentral()
+    }
+
+    // El componente "java" aparece recién cuando austral.quality aplica Kotlin JVM.
+    pluginManager.withPlugin("org.jetbrains.kotlin.jvm") {
+        extensions.configure<PublishingExtension> {
+            publications {
+                create<MavenPublication>("gpr") {
+                    from(components["java"])
+                    groupId = "com.printscript"
+                    artifactId = project.name
+                    version = "1.0.0"
+                }
+            }
+
+            repositories {
+                maven {
+                    name = "GitHubPackages"
+                    url = uri("https://maven.pkg.github.com/printScript-ingsis-vlt/print-script-ingsis")
+                    credentials {
+                        username = System.getenv("GITHUB_ACTOR")
+                        password = System.getenv("GITHUB_TOKEN")
+                    }
+                }
+            }
+        }
     }
 }
 
