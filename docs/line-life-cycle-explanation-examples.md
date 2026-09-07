@@ -1,5 +1,3 @@
-Aquí tienes la documentación en formato Markdown limpio, sin enlaces locales ni dependencias de rutas, lista para commitear directamente en el repositorio:
-
 ```markdown
 # Pipeline de Validación y Ejecución en PrintScript
 
