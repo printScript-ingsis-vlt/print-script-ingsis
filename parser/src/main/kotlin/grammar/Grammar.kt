@@ -16,6 +16,9 @@ import recurses.TokenType
 import recurses.VariableDeclaration
 
 object Grammar {
+    private const val TYPE_TOKEN_INDEX = 3
+    private const val OPTIONAL_VALUE_INDEX = 4
+
     // ---------- Terminals reutilizables ----------
     val LET = token(TokenType.LET, "let")
     val COLON = token(TokenType.COLON, ":")
@@ -64,14 +67,14 @@ object Grammar {
             ),
         ) { values ->
             @Suppress("UNCHECKED_CAST")
-            val list = values as List<Any>
+            val list = values as List<Any?>
 
             val letToken = list[0] as Token
             val nameToken = list[1] as Token
-            val typeToken = list[3] as Token
+            val typeToken = list[TYPE_TOKEN_INDEX] as Token
 
             val value: Expr? =
-                when (val opt = list[4]) {
+                when (val opt = list[OPTIONAL_VALUE_INDEX]) {
                     null -> null
                     // el segundo elemento de [EQUAL, expression]
                     is List<*> -> opt[1] as Expr

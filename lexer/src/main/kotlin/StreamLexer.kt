@@ -146,18 +146,21 @@ class StreamLexer(
         var result: Result<Token, LexicalError>? = null
         while (result == null) {
             val c = readChar()
-            result = when {
-                c == null -> Result.Failure(LexicalError(startPos, "String sin cerrar"))
-                c == quote -> {
-                    val token = Token(TokenType.STRING_LITERAL, sb.toString(), startPos, Position(line, column))
-                    Result.Success(token)
+            result =
+                when {
+                    c == null -> Result.Failure(LexicalError(startPos, "String sin cerrar"))
+
+                    c == quote -> {
+                        val token = Token(TokenType.STRING_LITERAL, sb.toString(), startPos, Position(line, column))
+                        Result.Success(token)
+                    }
+
+                    c == '\n' -> Result.Failure(LexicalError(startPos, "String sin cerrar antes de fin de línea"))
+                    else -> {
+                        sb.append(c)
+                        null
+                    }
                 }
-                c == '\n' -> Result.Failure(LexicalError(startPos, "String sin cerrar antes de fin de línea"))
-                else -> {
-                    sb.append(c)
-                    null
-                }
-            }
         }
         return result
     }
