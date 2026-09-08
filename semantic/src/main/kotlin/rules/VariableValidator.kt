@@ -1,7 +1,16 @@
 package rules
 
 import SemanticRule
-import recurses.*
+import recurses.Assignment
+import recurses.BinaryExpression
+import recurses.Environment
+import recurses.Expr
+import recurses.Identifier
+import recurses.NumberLiteral
+import recurses.PrintStatement
+import recurses.Stmt
+import recurses.StringLiteral
+import recurses.VariableDeclaration
 import result.SemanticError
 
 class VariableValidator : SemanticRule { // --> Valida que las variables existan y esten inicializadas

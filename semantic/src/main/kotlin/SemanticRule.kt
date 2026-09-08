@@ -1,4 +1,5 @@
-import recurses.*
+import recurses.Environment
+import recurses.Stmt
 import result.SemanticError
 
 interface SemanticRule {

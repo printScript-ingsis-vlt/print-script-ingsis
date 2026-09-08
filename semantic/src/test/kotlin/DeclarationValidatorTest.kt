@@ -1,9 +1,12 @@
-package semantic
-
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import recurses.*
+import recurses.Assignment
+import recurses.Environment
+import recurses.NumberLiteral
+import recurses.StringLiteral
+import recurses.Variable
+import recurses.VariableDeclaration
 import recurses.valuedataclass.NumberValue
 import rules.DeclarationValidator
 

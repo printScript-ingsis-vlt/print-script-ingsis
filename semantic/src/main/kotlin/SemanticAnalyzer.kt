@@ -1,4 +1,10 @@
-import recurses.*
+import recurses.Assignment
+import recurses.Environment
+import recurses.Position
+import recurses.PrintStatement
+import recurses.Program
+import recurses.Variable
+import recurses.VariableDeclaration
 import recurses.valuedataclass.NumberValue
 import recurses.valuedataclass.StringValue
 import result.SemanticError

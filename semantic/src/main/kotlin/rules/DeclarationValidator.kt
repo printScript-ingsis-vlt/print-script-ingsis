@@ -1,7 +1,16 @@
 package rules
 
 import SemanticRule
-import recurses.*
+import recurses.Assignment
+import recurses.BinaryExpression
+import recurses.Environment
+import recurses.Expr
+import recurses.Identifier
+import recurses.NumberLiteral
+import recurses.PrintStatement
+import recurses.Stmt
+import recurses.StringLiteral
+import recurses.VariableDeclaration
 import result.SemanticError
 
 class DeclarationValidator : SemanticRule { // --> Valida los tipos y que el valor declarado coincida con el tipo

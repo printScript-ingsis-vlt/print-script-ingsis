@@ -1,9 +1,11 @@
-package semantic
-
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import recurses.*
+import recurses.BinaryExpression
+import recurses.Environment
+import recurses.NumberLiteral
+import recurses.PrintStatement
+import recurses.StringLiteral
 import rules.ExpressionValidator
 
 class ExpressionValidatorTest {
