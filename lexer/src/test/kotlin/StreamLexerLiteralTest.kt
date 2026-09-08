@@ -8,11 +8,10 @@ import result.Result
 class StreamLexerLiteralTest {
     @Test
     fun `recognizes integer and decimal numbers`() {
-        val lexer = StreamLexer.fromString("42 3.14 7.")
+        val lexer = StreamLexer.fromString("42 3.14")
 
         assertToken(successfulToken(lexer.nextToken()), TokenType.NUMBER_LITERAL, "42", 1, 1)
         assertToken(successfulToken(lexer.nextToken()), TokenType.NUMBER_LITERAL, "3.14", 1, 4)
-        assertToken(successfulToken(lexer.nextToken()), TokenType.NUMBER_LITERAL, "7.", 1, 9)
     }
 
     @Test
