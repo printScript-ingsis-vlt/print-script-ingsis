@@ -122,7 +122,12 @@ class InterpreterTest {
             listOf(
                 VariableDeclaration("name", "String", StringLiteral("PrintScript", dummyPos), dummyPos),
                 PrintStatement(
-                    BinaryExpression(StringLiteral("Welcome to ", dummyPos), "+", Identifier("name", dummyPos), dummyPos),
+                    BinaryExpression(
+                        StringLiteral("Welcome to ", dummyPos),
+                        "+",
+                        Identifier("name", dummyPos),
+                        dummyPos
+                    ),
                     dummyPos
                 )
             )

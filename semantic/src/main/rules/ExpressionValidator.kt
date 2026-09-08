@@ -4,6 +4,7 @@ import austral.src.main.kotlin.commun.*
 import austral.src.main.kotlin.commun.result.SemanticError
 import austral.src.main.kotlin.interpreter.*
 import austral.src.main.kotlin.semantic.SemanticRule
+import recurses.OperationType
 
 class ExpressionValidator : SemanticRule { // --> Valido operadores y que sea coherentes
 
@@ -22,22 +23,23 @@ class ExpressionValidator : SemanticRule { // --> Valido operadores y que sea co
     private fun checkExpression(expr: Expr, env: Environment, errors: MutableList<SemanticError>) {
         when (expr) {
             is BinaryExpression -> {
-                if (expr.operator !in setOf("+", "-", "*", "/")) {
+                val operationType = OperationType.fromString(expr.operator)
+                if (operationType == null) {
                     errors.add(SemanticError(expr.position, "Unknown operator '${expr.operator}'"))
                 } else {
                     val leftType = resolveType(expr.left, env)
                     val rightType = resolveType(expr.right, env)
 
-                    if (expr.operator != "+" && (leftType != "number" || rightType != "number")) {
+                    if (operationType != OperationType.PLUS && (leftType != "number" || rightType != "number")) {
                         errors.add(
                             SemanticError(
                                 expr.position,
-                                "Operator '${expr.operator}' requires operand"
+                                "Operator '${expr.operator}' requires numeric operands"
                             )
                         )
                     }
 
-                    if (expr.operator == "/" && errors.none { it.position == expr.position }) {
+                    if (operationType == OperationType.DIVIDE && errors.none { it.position == expr.position }) {
                         val rightValue = evaluateConstant(expr.right, env)
                         if (rightValue == 0.0) {
                             errors.add(SemanticError(expr.position, "Division by zero"))
@@ -61,7 +63,8 @@ class ExpressionValidator : SemanticRule { // --> Valido operadores y que sea co
         is BinaryExpression -> {
             val left = resolveType(expr.left, env) ?: return null
             val right = resolveType(expr.right, env) ?: return null
-            if (expr.operator == "+" && (left == "string" || right == "string")) "string"
+            val operationType = OperationType.fromString(expr.operator)
+            if (operationType == OperationType.PLUS && (left == "string" || right == "string")) "string"
             else if (left == "number" && right == "number") "number"
             else null
         }
@@ -73,12 +76,12 @@ class ExpressionValidator : SemanticRule { // --> Valido operadores y que sea co
         is BinaryExpression -> {
             val left = evaluateConstant(expr.left, env) ?: return null
             val right = evaluateConstant(expr.right, env) ?: return null
-            when (expr.operator) {
-                "+" -> left + right
-                "-" -> left - right
-                "*" -> left * right
-                "/" -> if (right != 0.0) left / right else null
-                else -> null
+            val operationType = OperationType.fromString(expr.operator) ?: return null
+            when (operationType) {
+                OperationType.PLUS -> left + right
+                OperationType.MINUS -> left - right
+                OperationType.MULTIPLY -> left * right
+                OperationType.DIVIDE -> if (right != 0.0) left / right else null
             }
         }
         is StringLiteral -> null
