@@ -1,5 +1,5 @@
 @startuml
-title Lexer — tokenización de los casos principales
+title Lexer — selección y ejecución de TokenMatcher
 
 skinparam monochrome true
 skinparam shadowing false
@@ -8,44 +8,70 @@ autonumber
 actor Usuario
 participant "CLI / consumidor" as Consumer
 participant "StreamLexer" as Lexer
+participant "LexerCursor" as Cursor
 participant "Reader" as Input
-participant "Token / Result" as Output
+participant "TokenMatcher[]" as Matchers
+participant "IdentifierMatcher" as Identifier
+participant "NumberMatcher" as Number
+participant "StringMatcher" as String
+participant "OperatorMatcher" as Operator
 
 Usuario -> Consumer : solicita tokenizar el código
-Consumer -> Lexer : tokenize(reader)
+Consumer -> Lexer : tokenize()
 activate Lexer
 
-note right of Lexer
-Para cada token:
-1. ignora espacios
-2. lee el siguiente carácter
-3. aplica la regla correspondiente
-end note
+loop mientras hasNext()
+  Lexer -> Cursor : skipWhitespace()
+  Cursor -> Input : peek()/read()
+  Input --> Cursor : caracteres
 
-alt Caso 1: palabra reservada o identificador
-  Consumer -> Lexer : entrada: "let total"
-  Lexer -> Input : lee caracteres
-  Lexer -> Lexer : reconoce palabra o identificador
-  Lexer -> Output : Success(LET, "let")
-  Lexer -> Output : Success(IDENTIFIER, "total")
-  Lexer -> Output : Success(EOF)
-  Output --> Consumer : tokens generados
+  Lexer -> Cursor : position y peek()
+  Cursor --> Lexer : start, first
 
-else Caso 2: número o string válido
-  Consumer -> Lexer : entrada: "12.5 \"hola\""
-  Lexer -> Input : lee caracteres
-  Lexer -> Lexer : acumula número / string hasta terminar
-  Lexer -> Output : Success(NUMBER_LITERAL, "12.5")
-  Lexer -> Output : Success(STRING_LITERAL, "hola")
-  Lexer -> Output : Success(EOF)
-  Output --> Consumer : tokens generados
+  alt EOF
+    Lexer -> Lexer : eof(start)
+    Lexer --> Consumer : Success(EOF)
 
-else Caso 3: carácter o string inválido
-  Consumer -> Lexer : entrada: "@"
-  Lexer -> Input : lee carácter
-  Lexer -> Lexer : no encuentra una regla válida
-  Lexer -> Output : Failure(LexicalError, posición, mensaje)
-  Output --> Consumer : detiene la tokenización y muestra el error
+  else carácter inicial disponible
+    Lexer -> Matchers : canStartWith(first)
+    Matchers --> Lexer : candidatos
+
+    alt exactamente un matcher
+      alt identificador o keyword: "let"
+        Lexer -> Identifier : match(cursor, start)
+        Identifier -> Cursor : peek()/read() hasta delimitador
+        Identifier --> Lexer : Success(LET, "let")
+
+      else número decimal válido: "12.5"
+        Lexer -> Number : match(cursor, start)
+        Number -> Cursor : read dígitos y punto decimal
+        Number --> Lexer : Success(NUMBER_LITERAL, "12.5")
+
+      else string válido: "hola"
+        Lexer -> String : match(cursor, start)
+        String -> Cursor : read hasta comilla de cierre
+        String --> Lexer : Success(STRING_LITERAL, "hola")
+
+      else operador con máxima coincidencia: "==" (ejemplo no pedido en la consigna pero con soporte)
+        Lexer -> Operator : match(cursor, start)
+        Operator -> Cursor : peek()/read() mientras exista extensión
+        Operator --> Lexer : Success(EQUAL_EQUAL, "==")
+
+      else token malformado: "7."
+        Lexer -> Number : match(cursor, start)
+        Number -> Cursor : consume '7.' y valida dígito posterior
+        Number --> Lexer : Failure(LexicalError)
+        Lexer --> Consumer : detiene la tokenización
+      end
+
+    else ningún matcher acepta el carácter: "@"
+      Lexer --> Consumer : Failure(LexicalError, carácter inesperado)
+
+    else más de un matcher acepta el carácter
+      Lexer -> Lexer : error de configuración ambigua
+    end
+  end
 end
+
 deactivate Lexer
 @enduml
