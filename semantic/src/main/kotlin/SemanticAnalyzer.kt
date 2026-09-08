@@ -19,7 +19,6 @@ class SemanticAnalyzer(private val rules: List<SemanticRule>) {
             errors.addAll(rules.flatMap { it.check(stmt, environment) })
             // --> Si no hubo errores en esta sentencia, actualiza el Environment
             if (!hasError(stmt.position, errors)) {
-
                 when (stmt) {
                     is VariableDeclaration -> {
                         vdValueDeclaration(stmt, environment)
@@ -36,7 +35,10 @@ class SemanticAnalyzer(private val rules: List<SemanticRule>) {
         return errors
     }
 
-    private fun assiValueDeclaration(environment: Environment, stmt: Assignment) {
+    private fun assiValueDeclaration(
+        environment: Environment,
+        stmt: Assignment,
+    ) {
         val variable = environment.lookup(stmt.name)
         if (variable != null) {
             val assignedValue = if (variable.type == "number") NumberValue(0.0) else StringValue("")
@@ -44,13 +46,21 @@ class SemanticAnalyzer(private val rules: List<SemanticRule>) {
         }
     }
 
-    private fun vdValueDeclaration(stmt: VariableDeclaration, environment: Environment) {
-        val initialValue = if (stmt.value != null) {
-            if (stmt.type == "number") NumberValue(0.0) else StringValue("")
-        } else null
+    private fun vdValueDeclaration(
+        stmt: VariableDeclaration,
+        environment: Environment,
+    ) {
+        val initialValue =
+            if (stmt.value != null) {
+                if (stmt.type == "number") NumberValue(0.0) else StringValue("")
+            } else {
+                null
+            }
         environment.declare(stmt.name, Variable(stmt.type, initialValue))
     }
 
-    private fun hasError(position: Position, errors: List<SemanticError>): Boolean =
-        errors.any { it.position == position }
+    private fun hasError(
+        position: Position,
+        errors: List<SemanticError>,
+    ): Boolean = errors.any { it.position == position }
 }

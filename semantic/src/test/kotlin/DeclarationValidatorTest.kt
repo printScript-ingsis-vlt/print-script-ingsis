@@ -11,7 +11,6 @@ import recurses.valuedataclass.NumberValue
 import rules.DeclarationValidator
 
 class DeclarationValidatorTest {
-
     private val validator = DeclarationValidator()
     private val env = Environment()
 

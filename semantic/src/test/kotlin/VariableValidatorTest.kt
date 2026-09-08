@@ -10,7 +10,6 @@ import recurses.valuedataclass.NumberValue
 import rules.VariableValidator
 
 class VariableValidatorTest {
-
     private val validator = VariableValidator()
 
     @Test

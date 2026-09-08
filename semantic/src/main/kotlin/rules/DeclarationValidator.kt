@@ -15,7 +15,10 @@ import result.SemanticError
 
 class DeclarationValidator : SemanticRule { // --> Valida los tipos y que el valor declarado coincida con el tipo
 
-    override fun check(stmt: Stmt, environment: Environment): List<SemanticError> {
+    override fun check(
+        stmt: Stmt,
+        environment: Environment,
+    ): List<SemanticError> {
         val errors = mutableListOf<SemanticError>()
         when (stmt) {
             is VariableDeclaration -> {
@@ -31,23 +34,31 @@ class DeclarationValidator : SemanticRule { // --> Valida los tipos y que el val
         return errors
     }
 
-    private fun resolveType(expr: Expr, env: Environment): String? = when (expr) {
-        is NumberLiteral -> "number"
-        is StringLiteral -> "string"
-        is Identifier -> env.lookup(expr.name)?.type
-        is BinaryExpression -> {
-            val left = resolveType(expr.left, env) ?: return null
-            val right = resolveType(expr.right, env) ?: return null
-            if (expr.operator == "+" && (left == "string" || right == "string")) "string"
-            else if (left == "number" && right == "number") "number"
-            else null
+    private fun resolveType(
+        expr: Expr,
+        env: Environment,
+    ): String? =
+        when (expr) {
+            is NumberLiteral -> "number"
+            is StringLiteral -> "string"
+            is Identifier -> env.lookup(expr.name)?.type
+            is BinaryExpression -> {
+                val left = resolveType(expr.left, env) ?: return null
+                val right = resolveType(expr.right, env) ?: return null
+                if (expr.operator == "+" && (left == "string" || right == "string")) {
+                    "string"
+                } else if (left == "number" && right == "number") {
+                    "number"
+                } else {
+                    null
+                }
+            }
         }
-    }
 
     private fun vdCase(
         stmt: VariableDeclaration,
         errors: MutableList<SemanticError>,
-        environment: Environment
+        environment: Environment,
     ) {
         if (stmt.type != "number" && stmt.type != "string") {
             errors.add(SemanticError(stmt.position, "Invalid type '${stmt.type}'"))
@@ -59,8 +70,8 @@ class DeclarationValidator : SemanticRule { // --> Valida los tipos y que el val
                 errors.add(
                     SemanticError(
                         stmt.position,
-                        "Cannot assign $valueType to ${stmt.type}"
-                    )
+                        "Cannot assign $valueType to ${stmt.type}",
+                    ),
                 )
             }
         }
@@ -69,7 +80,7 @@ class DeclarationValidator : SemanticRule { // --> Valida los tipos y que el val
     private fun assiCase(
         stmt: Assignment,
         errors: MutableList<SemanticError>,
-        environment: Environment
+        environment: Environment,
     ) {
         val variable = environment.lookup(stmt.name)
         if (variable != null) {
@@ -78,6 +89,5 @@ class DeclarationValidator : SemanticRule { // --> Valida los tipos y que el val
                 errors.add(SemanticError(stmt.position, "Cannot assign $valueType to ${variable.type}"))
             }
         }
-
     }
 }

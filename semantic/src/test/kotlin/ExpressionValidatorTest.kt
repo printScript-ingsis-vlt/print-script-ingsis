@@ -9,7 +9,6 @@ import recurses.StringLiteral
 import rules.ExpressionValidator
 
 class ExpressionValidatorTest {
-
     private val validator = ExpressionValidator()
     private val env = Environment()
 

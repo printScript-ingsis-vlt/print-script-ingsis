@@ -15,7 +15,10 @@ import result.SemanticError
 
 class VariableValidator : SemanticRule { // --> Valida que las variables existan y esten inicializadas
 
-    override fun check(stmt: Stmt, environment: Environment): List<SemanticError> {
+    override fun check(
+        stmt: Stmt,
+        environment: Environment,
+    ): List<SemanticError> {
         val errors = mutableListOf<SemanticError>()
         when (stmt) {
             is VariableDeclaration -> {
@@ -24,8 +27,12 @@ class VariableValidator : SemanticRule { // --> Valida que las variables existan
                     checkExpression(value, environment, errors)
                 }
             }
-            is PrintStatement -> { checkExpression(stmt.argument, environment, errors) }
-            is Assignment -> { assiCase(environment, stmt, errors) }
+            is PrintStatement -> {
+                checkExpression(stmt.argument, environment, errors)
+            }
+            is Assignment -> {
+                assiCase(environment, stmt, errors)
+            }
         }
         return errors
     }
@@ -33,7 +40,7 @@ class VariableValidator : SemanticRule { // --> Valida que las variables existan
     private fun assiCase(
         environment: Environment,
         stmt: Assignment,
-        errors: MutableList<SemanticError>
+        errors: MutableList<SemanticError>,
     ) {
         val variable = environment.lookup(stmt.name)
         if (variable == null) {
@@ -42,7 +49,11 @@ class VariableValidator : SemanticRule { // --> Valida que las variables existan
         checkExpression(stmt.value, environment, errors)
     }
 
-    private fun checkExpression(expr: Expr, env: Environment, errors: MutableList<SemanticError>) {
+    private fun checkExpression(
+        expr: Expr,
+        env: Environment,
+        errors: MutableList<SemanticError>,
+    ) {
         when (expr) {
             is Identifier -> {
                 val variable = env.lookup(expr.name)
