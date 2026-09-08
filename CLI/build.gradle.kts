@@ -19,7 +19,6 @@ application {
     mainClass.set("cli.MainKt")
 }
 
-
 tasks.jar {
     manifest {
         attributes["Main-Class"] = "cli.MainKt"

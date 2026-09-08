@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test
 import java.io.File
 
 class LintConfigLoaderTest {
-
     @Test
     fun `load default when file does not exist`() {
         val config = LintConfigLoader.loadFromJson("/nonexistent/path/rules.json")
@@ -35,7 +34,7 @@ class LintConfigLoaderTest {
               "identifierFormat": "CAMEL_CASE",
               "printlnArgumentCheck": true
             }
-            """.trimIndent()
+            """.trimIndent(),
         )
 
         val config = LintConfigLoader.loadFromJson(tempFile.absolutePath)

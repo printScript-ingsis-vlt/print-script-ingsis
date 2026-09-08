@@ -6,15 +6,12 @@ import dataclass.LintNotification
 import dataclass.Severity
 import recurses.Assignment
 import recurses.Program
-import recurses.Stmt
 import recurses.VariableDeclaration
-
 
 // --> Rule que revisa todo identificador o asignacion que se le pase
 class IdentifierFormatRule(
-    private val format: IdentifierFormat
+    private val format: IdentifierFormat,
 ) : LintRule {
-
     override val id: String = "identifier-format"
 
     // --> Expresiones regulares según la convención
@@ -33,8 +30,8 @@ class IdentifierFormatRule(
                                 rule = id,
                                 severity = Severity.WARNING,
                                 message = "Identifier '${stmt.name}' does not match $format naming convention",
-                                position = stmt.position
-                            )
+                                position = stmt.position,
+                            ),
                         )
                     }
                 }
@@ -46,8 +43,8 @@ class IdentifierFormatRule(
                                 rule = id,
                                 severity = Severity.WARNING,
                                 message = "Identifier '${stmt.name}' does not match $format naming convention",
-                                position = stmt.position
-                            )
+                                position = stmt.position,
+                            ),
                         )
                     }
                 }
