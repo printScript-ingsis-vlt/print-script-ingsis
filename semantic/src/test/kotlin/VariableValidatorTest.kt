@@ -1,6 +1,8 @@
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import recurses.Assignment
+import recurses.BinaryExpression
 import recurses.Environment
 import recurses.Identifier
 import recurses.PrintStatement
@@ -38,5 +40,35 @@ class VariableValidatorTest {
         val stmt = PrintStatement(Identifier("y", pos()), pos())
         val errors = validator.check(stmt, env)
         assertTrue(errors.isEmpty())
+    }
+
+    @Test
+    fun `assignment reports an undeclared target and referenced variable`() {
+        val env = Environment()
+        val stmt = Assignment("target", Identifier("value", pos()), pos())
+
+        val errors = validator.check(stmt, env)
+
+        assertEquals(2, errors.size)
+        assertEquals("Variable 'target' is not declared", errors[0].message)
+        assertEquals("Variable 'value' is not declared", errors[1].message)
+    }
+
+    @Test
+    fun `binary expressions validate both operands`() {
+        val env = Environment()
+        env.declare("initialized", Variable("number", NumberValue(1.0)))
+        env.declare("uninitialized", Variable("number", null))
+        val expression =
+            BinaryExpression(
+                Identifier("initialized", pos()),
+                "+",
+                Identifier("uninitialized", pos()),
+                pos(),
+            )
+
+        val errors = validator.check(PrintStatement(expression, pos()), env)
+
+        assertEquals("Variable 'uninitialized' is not initialized", errors.single().message)
     }
 }

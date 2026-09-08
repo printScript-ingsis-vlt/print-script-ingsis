@@ -2,7 +2,9 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import recurses.Assignment
+import recurses.BinaryExpression
 import recurses.Environment
+import recurses.Identifier
 import recurses.NumberLiteral
 import recurses.StringLiteral
 import recurses.Variable
@@ -44,5 +46,30 @@ class DeclarationValidatorTest {
         val errors = validator.check(stmt, env)
         assertEquals(1, errors.size)
         assertEquals("Cannot assign string to number", errors.first().message)
+    }
+
+    @Test
+    fun `string concatenation can initialize a string variable`() {
+        val value = BinaryExpression(StringLiteral("hello", pos()), "+", NumberLiteral(1.0, pos()), pos())
+        val stmt = VariableDeclaration("message", "string", value, pos())
+
+        assertTrue(validator.check(stmt, env).isEmpty())
+    }
+
+    @Test
+    fun `identifier type is used when validating declarations`() {
+        env.declare("message", Variable("string", NumberValue(1.0)))
+        val stmt = VariableDeclaration("count", "number", Identifier("message", pos()), pos())
+
+        val errors = validator.check(stmt, env)
+
+        assertEquals("Cannot assign string to number", errors.single().message)
+    }
+
+    @Test
+    fun `assignment to an undeclared variable is ignored by declaration validation`() {
+        val stmt = Assignment("unknown", NumberLiteral(1.0, pos()), pos())
+
+        assertTrue(validator.check(stmt, env).isEmpty())
     }
 }
