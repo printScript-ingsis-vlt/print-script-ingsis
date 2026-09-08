@@ -1,0 +1,47 @@
+@startuml
+title Parser — construcción del programa
+
+skinparam monochrome true
+skinparam shadowing false
+autonumber
+
+actor Usuario
+participant "CLI / consumidor" as Consumer
+participant "ConfigurableParser" as Parser
+participant "Grammar" as Grammar
+participant "AST / Result" as Output
+
+Usuario -> Consumer : entrega la lista de tokens
+Consumer -> Parser : parse(tokens)
+activate Parser
+
+alt Caso 1: declaración válida
+  Consumer -> Parser : LET nombre : tipo = valor ;
+  Parser -> Grammar : declaration.parse(tokens)
+  Grammar -> Grammar : valida la secuencia esperada
+  Grammar -> Output : VariableDeclaration
+  Output --> Parser : sentencia creada
+
+else Caso 2: asignación válida
+  Consumer -> Parser : nombre = valor ;
+  Parser -> Grammar : assignment.parse(tokens)
+  Grammar -> Output : Assignment
+  Output --> Parser : sentencia creada
+
+else Caso 3: sintaxis inválida
+  Consumer -> Parser : let nombre = ;
+  Parser -> Grammar : intenta analizar la sentencia
+  Grammar -> Output : SyntaxError
+  Output --> Parser : error con posición
+  Parser -> Parser : avanza hasta ';' o EOF
+end
+
+alt No hubo errores
+  Parser -> Output : Success(Program)
+  Output --> Consumer : AST con las sentencias
+else Hubo uno o más errores
+  Parser -> Output : Failure(List<SyntaxError>)
+  Output --> Consumer : errores de sintaxis
+end
+deactivate Parser
+@enduml
