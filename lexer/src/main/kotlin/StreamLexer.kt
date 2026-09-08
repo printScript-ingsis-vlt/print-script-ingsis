@@ -1,8 +1,8 @@
+import implementations.IdentifierMatcher
+import implementations.NumberMatcher
+import implementations.OperatorMatcher
+import implementations.StringMatcher
 import interfaces.Lexer
-import matcherImplementations.IdentifierMatcher
-import matcherImplementations.NumberMatcher
-import matcherImplementations.OperatorMatcher
-import matcherImplementations.StringMatcher
 import recurses.Position
 import recurses.Token
 import recurses.TokenType
@@ -15,6 +15,21 @@ class StreamLexer(
     reader: Reader,
     private val matchers: List<TokenMatcher> = defaultMatchers(DEFAULT_CONFIGURATION),
 ) : Lexer {
+    constructor(
+        reader: Reader,
+        keywords: Map<String, TokenType>,
+        singleCharTokens: Map<Char, TokenType>,
+    ) : this(
+        reader = reader,
+        matchers =
+            defaultMatchers(
+                LexerConfiguration(
+                    keywords = keywords,
+                    operators = singleCharTokens.mapKeys { (character, _) -> character.toString() },
+                ),
+            ),
+    )
+
     private val cursor = LexerCursor(reader)
 
     private var emittedEof = false
@@ -41,35 +56,37 @@ class StreamLexer(
         val start = cursor.position
         val first = cursor.peek()
 
-        if (first == null) {
-            return Result.Success(eof(start)) // --> EOF si el caracter leido es null
-        }
+        val result =
+            if (first == null) {
+                Result.Success(eof(start)) // --> EOF si el caracter leido es null
+            } else {
+                val candidates =
+                    matchers.filter { matcher ->
+                        matcher.canStartWith(first) // --> Recorre todos los matchers
+                        // consultando cual acepta el caracter
+                    }
 
-        val candidates = matchers.filter { matcher ->
-            matcher.canStartWith(first) // --> Recorre todos los matchers
-        // consultando cual acepta el caracter
-        }
+                when (candidates.size) {
+                    0 ->
+                        // Ningún matcher maneja el carácter.
+                        Result.Failure(
+                            LexicalError(start, "Caracter inesperado '$first'"),
+                        )
 
-        val matcher =
-            when (candidates.size) {
-                0 -> {
-                    return Result.Failure( // --> Ningun matcher lo maneja
-                        LexicalError(start, "Caracter inesperado '$first'"),
-                    )
-                }
+                    1 -> candidates.single().match(cursor, start)
 
-                1 -> candidates.single()
-
-                else -> {
-                    error( // --> Muchos matchers lo manejan
-                        "Configuración ambigua: " +
-                            candidates.joinToString { it.name } +
-                            " aceptan el carácter '$first'",
-                    )
+                    else -> {
+                        // Más de un matcher maneja el carácter.
+                        error(
+                            "Configuración ambigua: " +
+                                candidates.joinToString { it.name } +
+                                " aceptan el carácter '$first'",
+                        )
+                    }
                 }
             }
 
-        return matcher.match(cursor, start)
+        return result
     }
 
     override fun tokenize(): Result<List<Token>, LexicalError> {
@@ -117,14 +134,14 @@ class StreamLexer(
                     ),
             )
 
-        fun defaultMatchers(
-            configuration: LexerConfiguration,
-        ): List<TokenMatcher> =
+        fun defaultMatchers(configuration: LexerConfiguration): List<TokenMatcher> =
             listOf(
                 StringMatcher(),
                 NumberMatcher(),
-                IdentifierMatcher(configuration.keywords), // --> Inyeccion de identifiers al matcher
-                OperatorMatcher(configuration.operators), // --> Inyeccion de operadores al matcher
+                // Inyección de keywords al matcher de identificadores.
+                IdentifierMatcher(configuration.keywords),
+                // Inyección de operadores al matcher correspondiente.
+                OperatorMatcher(configuration.operators),
             )
 
         fun fromString(
@@ -139,13 +156,11 @@ class StreamLexer(
         fun tokenize(
             reader: Reader,
             configuration: LexerConfiguration = DEFAULT_CONFIGURATION,
-        ): Result<List<Token>, LexicalError> =
-            StreamLexer(reader, defaultMatchers(configuration)).tokenize()
+        ): Result<List<Token>, LexicalError> = StreamLexer(reader, defaultMatchers(configuration)).tokenize()
 
         fun tokenize(
             source: String,
             configuration: LexerConfiguration = DEFAULT_CONFIGURATION,
-        ): Result<List<Token>, LexicalError> =
-            tokenize(StringReader(source), configuration)
+        ): Result<List<Token>, LexicalError> = tokenize(StringReader(source), configuration)
     }
 }

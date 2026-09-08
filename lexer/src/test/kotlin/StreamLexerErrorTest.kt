@@ -48,4 +48,13 @@ class StreamLexerErrorTest {
         assertEquals(TokenType.NUMBER_LITERAL, successfulToken(lexer.nextToken()).type)
         assertEquals("Caracter inesperado '.'", lexicalError(lexer.nextToken()).message)
     }
+
+    @Test
+    fun `reports a decimal point without trailing digits`() {
+        val error = lexicalError(StreamLexer.fromString("7.").nextToken())
+
+        assertEquals("Se esperaba un dígito después del punto decimal", error.message)
+        assertEquals(1, error.position.line)
+        assertEquals(2, error.position.column)
+    }
 }

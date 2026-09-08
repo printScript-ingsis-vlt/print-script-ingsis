@@ -8,7 +8,8 @@ interface TokenMatcher {
 
     fun canStartWith(character: Char): Boolean // --> Responde al lexer si puede leer ese caracter
 
-    fun match( // --> Consume todo lo perteneciente al token
+    // Consume todos los caracteres pertenecientes al token.
+    fun match(
         cursor: LexerCursor,
         start: Position,
     ): Result<Token, LexicalError>

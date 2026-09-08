@@ -1,15 +1,16 @@
-package matcherImplementations
+package implementations
 
 import LexerCursor
 import TokenMatcher
 import recurses.Position
+import recurses.Token
 import recurses.TokenType
 import result.LexicalError
-import recurses.Token
 import result.Result
 
 class IdentifierMatcher(
-    private val keywords: Map<String, TokenType>, // --> Recibe let, const, etc
+    // Recibe las keywords configuradas, como let o const.
+    private val keywords: Map<String, TokenType>,
 ) : TokenMatcher {
     override val name = "identifier"
 
@@ -20,17 +21,14 @@ class IdentifierMatcher(
         cursor: LexerCursor,
         start: Position,
     ): Result<Token, LexicalError> {
-        val text = buildString {
-            while (true) {
-                val next = cursor.peek() ?: break // --> Queda caracter por leer?
-
-                if (!next.isLetterOrDigit() && next != '_') {
-                    break
+        val text =
+            buildString {
+                var next = cursor.peek()
+                while (next?.let { it.isLetterOrDigit() || it == '_' } == true) {
+                    append(cursor.read()!!) // --> !! es porque se sabe que no va a ser nulo
+                    next = cursor.peek()
                 }
-
-                append(cursor.read()!!) // --> !! es porque se sabe que no va a ser nulo
             }
-        }
 
         val type = keywords[text] ?: TokenType.IDENTIFIER // --> si se encuentra definido en los keywords
         // se usa su tipo, si no un identifier

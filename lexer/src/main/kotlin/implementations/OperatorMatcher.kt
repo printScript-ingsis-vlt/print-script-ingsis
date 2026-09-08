@@ -1,16 +1,16 @@
-package matcherImplementations
+package implementations
 
 import LexerCursor
 import TokenMatcher
 import recurses.Position
+import recurses.Token
 import recurses.TokenType
 import result.LexicalError
-import recurses.Token
 import result.Result
 
-
 class OperatorMatcher(
-    private val operators: Map<String, TokenType>, // --> Inyecccion de operadores definidos
+    // Inyección de los operadores definidos por el lenguaje.
+    private val operators: Map<String, TokenType>,
 ) : TokenMatcher {
     override val name = "operator"
 
@@ -20,9 +20,11 @@ class OperatorMatcher(
             "Un operador no puede ser vacío"
         }
 
-        require(operators.keys.none { operator ->
-            operator.any(Char::isWhitespace)
-        }) {
+        require(
+            operators.keys.none { operator ->
+                operator.any(Char::isWhitespace)
+            },
+        ) {
             "Un operador no puede contener espacios"
         }
     }
@@ -38,24 +40,24 @@ class OperatorMatcher(
         text.append(cursor.read()!!)
 
         while (true) { // --> Bucle solo de operadores
-            val next = cursor.peek() ?: break
-            val possibleExtension = text.toString() + next // --> Si tras consumir un operador, el siguiente
-            // es un operador, lo agrega como uno solo (por ejemplo un caso donde sea = (1, 1) y = (1,2))
+            val possibleExtension = cursor.peek()?.let { text.toString() + it }
 
-            val hasLongerOperator = operators.keys.any { operator ->
-                operator.startsWith(possibleExtension)
-            } // --> Busca si ese operador extendido existe realmente
+            if (
+                possibleExtension == null ||
+                operators.keys.none { operator -> operator.startsWith(possibleExtension) }
+            ) {
+                break
+            }
 
-            if (!hasLongerOperator) break
-
-            text.append(cursor.read())
+            text.append(cursor.read()!!)
         }
 
         val op = text.toString()
-        val type = operators[op]
-            ?: return Result.Failure(
-                LexicalError(start, "Operador inválido '$op'"),
-            ) // --> Comprueba si existe un operador que coincida exactamente con el obtenido
+        val type =
+            operators[op]
+                ?: return Result.Failure(
+                    LexicalError(start, "Operador inválido '$op'"),
+                ) // --> Comprueba si existe un operador que coincida exactamente con el obtenido
 
         return Result.Success(
             Token(

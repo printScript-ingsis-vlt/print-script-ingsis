@@ -1,19 +1,17 @@
-package matcherImplementations
+package implementations
 
 import LexerCursor
 import TokenMatcher
 import recurses.Position
+import recurses.Token
 import recurses.TokenType
 import result.LexicalError
-import recurses.Token
 import result.Result
-
 
 class NumberMatcher : TokenMatcher {
     override val name = "number"
 
-    override fun canStartWith(character: Char): Boolean =
-        character.isDigit() // --> Solo digitos aceptados
+    override fun canStartWith(character: Char): Boolean = character.isDigit() // --> Solo digitos aceptados
 
     override fun match(
         cursor: LexerCursor,
@@ -25,13 +23,17 @@ class NumberMatcher : TokenMatcher {
             text.append(cursor.read())
         }
 
-        if (cursor.peek() == '.') { // --> Despues de un punto solo podran ser aceptados digitos, no otro punto de vuelta
+        // Después de un punto se requiere al menos un dígito.
+        if (cursor.peek() == '.') {
             val dotPosition = cursor.position
             text.append(cursor.read())
 
             if (cursor.peek()?.isDigit() != true) {
                 return Result.Failure(
-                    LexicalError(dotPosition, "Se esperaba un dígito después del punto decimal"),
+                    LexicalError(
+                        dotPosition,
+                        "Se esperaba un dígito después del punto decimal",
+                    ),
                 )
             }
 
