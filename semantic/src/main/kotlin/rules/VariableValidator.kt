@@ -1,9 +1,8 @@
-package austral.src.main.kotlin.semantic.rules
+package rules
 
-import austral.src.main.kotlin.commun.*
-import austral.src.main.kotlin.commun.result.SemanticError
-import austral.src.main.kotlin.commun.Environment
-import austral.src.main.kotlin.semantic.SemanticRule
+import SemanticRule
+import recurses.*
+import result.SemanticError
 
 class VariableValidator : SemanticRule { // --> Valida que las variables existan y esten inicializadas
 
@@ -11,12 +10,27 @@ class VariableValidator : SemanticRule { // --> Valida que las variables existan
         val errors = mutableListOf<SemanticError>()
         when (stmt) {
             is VariableDeclaration -> {
-                if (stmt.value != null) {
-                    checkExpression(stmt.value, environment, errors)
+                val value = stmt.value
+                if (value != null) {
+                    checkExpression(value, environment, errors)
                 }
             }
+            is PrintStatement -> { checkExpression(stmt.argument, environment, errors) }
+            is Assignment -> { assiCase(environment, stmt, errors) }
         }
         return errors
+    }
+
+    private fun assiCase(
+        environment: Environment,
+        stmt: Assignment,
+        errors: MutableList<SemanticError>
+    ) {
+        val variable = environment.lookup(stmt.name)
+        if (variable == null) {
+            errors.add(SemanticError(stmt.position, "Variable '${stmt.name}' is not declared"))
+        }
+        checkExpression(stmt.value, environment, errors)
     }
 
     private fun checkExpression(expr: Expr, env: Environment, errors: MutableList<SemanticError>) {
