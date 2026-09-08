@@ -28,7 +28,7 @@ class IdentifierMatcher(
                     break
                 }
 
-                append(cursor.read()!!)
+                append(cursor.read()!!) // --> !! es porque se sabe que no va a ser nulo
             }
         }
 
