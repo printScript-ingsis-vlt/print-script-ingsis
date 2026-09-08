@@ -11,7 +11,6 @@ import rules.PrintlnArgumentRule
  */
 
 class PrintScriptLinter(private val config: LintConfig = LintConfig()) : Linter {
-
     // --> Las reglas se instancian basándose en la configuración provista de antes
     private val rules: List<LintRule> = buildRules()
 

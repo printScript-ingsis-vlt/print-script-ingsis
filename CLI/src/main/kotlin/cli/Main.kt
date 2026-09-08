@@ -7,7 +7,7 @@ import commands.LexCommand
 import commands.LintCommand
 import commands.MyLangCli
 
-fun main(args: Array<String>) = MyLangCli()
-    .subcommands(LexCommand(), InterpretCommand(), FormatCommand(), LintCommand())
-    .main(args)
-
+fun main(args: Array<String>) =
+    MyLangCli()
+        .subcommands(LexCommand(), InterpretCommand(), FormatCommand(), LintCommand())
+        .main(args)

@@ -40,7 +40,7 @@ class Interpreter(private val output: Output) {
 
     private fun executePrint(stmt: PrintStatement) {
         val expr = evaluate(stmt.argument)
-        output.write(expr.toString())
+        output.write(expr.asString())
     }
 
     fun evaluate(expr: Expr): Value =

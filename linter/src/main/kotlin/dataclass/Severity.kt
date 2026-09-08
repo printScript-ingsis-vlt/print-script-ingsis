@@ -1,5 +1,6 @@
 package dataclass
 
 enum class Severity {
-    ERROR, WARNING
+    ERROR,
+    WARNING,
 }

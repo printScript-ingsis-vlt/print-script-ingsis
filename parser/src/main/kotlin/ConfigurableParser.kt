@@ -24,15 +24,17 @@ class ConfigurableParser : Parser {
                 }
                 is ParseResult.Failure -> {
                     errors.add(result.error)
-                    // sincronización simple
-                    while (pos < line.size &&
+
+                    while (
+                        pos < line.size &&
                         line[pos].type != TokenType.SEMICOLON &&
-                        line[pos].type != TokenType.LET &&
                         line[pos].type != TokenType.EOF
                     ) {
                         pos++
                     }
-                    if (pos < line.size && line[pos].type == TokenType.SEMICOLON) pos++
+                    if (pos < line.size && line[pos].type == TokenType.SEMICOLON) {
+                        pos++
+                    }
                 }
             }
         }

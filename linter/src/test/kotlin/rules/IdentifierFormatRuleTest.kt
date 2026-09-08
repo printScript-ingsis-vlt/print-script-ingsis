@@ -12,18 +12,18 @@ import recurses.Program
 import recurses.VariableDeclaration
 
 class IdentifierFormatRuleTest {
-
     // --- CAMEL_CASE ---
 
     @Test
     fun `should accept valid camelCase variable declaration`() {
         val rule = IdentifierFormatRule(IdentifierFormat.CAMEL_CASE)
-        val stmt = VariableDeclaration(
-            name = "myVariable",
-            type = "number",
-            value = NumberLiteral(5.0, Position(1, 1)),
-            position = Position(1, 1)
-        )
+        val stmt =
+            VariableDeclaration(
+                name = "myVariable",
+                type = "number",
+                value = NumberLiteral(5.0, Position(1, 1)),
+                position = Position(1, 1),
+            )
         val program = Program(Position(1, 1), listOf(stmt))
 
         val notifications = rule.check(program)
@@ -34,12 +34,14 @@ class IdentifierFormatRuleTest {
     @Test
     fun `should report warning when camelCase is violated in declaration`() {
         val rule = IdentifierFormatRule(IdentifierFormat.CAMEL_CASE)
-        val stmt = VariableDeclaration(
-            name = "my_variable", // snake_case inválido para esta config
-            type = "number",
-            value = NumberLiteral(5.0, Position(1, 1)),
-            position = Position(1, 1)
-        )
+        val stmt =
+            VariableDeclaration(
+                // snake_case inválido para esta config
+                name = "my_variable",
+                type = "number",
+                value = NumberLiteral(5.0, Position(1, 1)),
+                position = Position(1, 1),
+            )
         val program = Program(Position(1, 1), listOf(stmt))
 
         val notifications = rule.check(program)
@@ -53,12 +55,14 @@ class IdentifierFormatRuleTest {
     @Test
     fun `should report warning when identifier starts with uppercase in camelCase`() {
         val rule = IdentifierFormatRule(IdentifierFormat.CAMEL_CASE)
-        val stmt = VariableDeclaration(
-            name = "MyVariable", // PascalCase
-            type = "number",
-            value = null,
-            position = Position(1, 1)
-        )
+        val stmt =
+            VariableDeclaration(
+                // PascalCase
+                name = "MyVariable",
+                type = "number",
+                value = null,
+                position = Position(1, 1),
+            )
         val program = Program(Position(1, 1), listOf(stmt))
 
         val notifications = rule.check(program)
@@ -71,12 +75,13 @@ class IdentifierFormatRuleTest {
     @Test
     fun `should accept valid snake_case variable declaration`() {
         val rule = IdentifierFormatRule(IdentifierFormat.SNAKE_CASE)
-        val stmt = VariableDeclaration(
-            name = "my_variable",
-            type = "number",
-            value = NumberLiteral(5.0, Position(1, 1)),
-            position = Position(1, 1)
-        )
+        val stmt =
+            VariableDeclaration(
+                name = "my_variable",
+                type = "number",
+                value = NumberLiteral(5.0, Position(1, 1)),
+                position = Position(1, 1),
+            )
         val program = Program(Position(1, 1), listOf(stmt))
 
         val notifications = rule.check(program)
@@ -87,11 +92,13 @@ class IdentifierFormatRuleTest {
     @Test
     fun `should report warning when snake_case is violated in assignment`() {
         val rule = IdentifierFormatRule(IdentifierFormat.SNAKE_CASE)
-        val stmt = Assignment(
-            name = "myVariable", // camelCase inválido para esta config
-            value = NumberLiteral(10.0, Position(2, 1)),
-            position = Position(2, 1)
-        )
+        val stmt =
+            Assignment(
+                // camelCase inválido para esta config
+                name = "myVariable",
+                value = NumberLiteral(10.0, Position(2, 1)),
+                position = Position(2, 1),
+            )
         val program = Program(Position(1, 1), listOf(stmt))
 
         val notifications = rule.check(program)
