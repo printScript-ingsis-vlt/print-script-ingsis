@@ -63,7 +63,6 @@ class Interpreter(private val output: Output) {
                                 OperationType.MINUS -> (left as NumberValue).value - (right as NumberValue).value
                                 OperationType.MULTIPLY -> (left as NumberValue).value * (right as NumberValue).value
                                 OperationType.DIVIDE -> (left as NumberValue).value / (right as NumberValue).value
-                                null -> 0.0
                             },
                         )
                 }

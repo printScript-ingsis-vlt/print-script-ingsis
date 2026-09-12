@@ -8,6 +8,7 @@ enum class OperationType(val symbol: String) {
     ;
 
     companion object {
-        fun fromString(symbol: String): OperationType? = entries.find { it.symbol == symbol }
+        fun fromString(symbol: String): OperationType = entries.find { it.symbol == symbol }
+            ?: throw IllegalArgumentException("Unknown operator: $symbol")
     }
 }
