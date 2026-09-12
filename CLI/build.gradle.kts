@@ -1,7 +1,6 @@
 plugins {
     id("austral.quality")
     application
-    // le pongo application para que sea un ejecutable
 }
 
 dependencies {
