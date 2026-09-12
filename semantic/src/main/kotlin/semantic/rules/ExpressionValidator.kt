@@ -24,6 +24,9 @@ class ExpressionValidator : SemanticRule { // --> Valido operadores y que sea co
         return stmt.getExpressions().flatMap { checkExpression(it, environment) }
     }
 
+    private fun operationTypeOrNull(operator: String): OperationType? =
+        runCatching { OperationType.fromString(operator) }.getOrNull()
+
     fun Stmt.getExpressions(): List<Expr> =
         when (this) {
             is VariableDeclaration -> listOfNotNull(this.value)
@@ -39,7 +42,7 @@ class ExpressionValidator : SemanticRule { // --> Valido operadores y que sea co
         when (expr) {
             is BinaryExpression -> {
                 // --> Operador no valido
-                val operationType = OperationType.fromString(expr.operator)
+                val operationType = operationTypeOrNull(expr.operator)
                 if (operationType == null) {
                     errors.add(SemanticError(expr.position, "Unknown operator '${expr.operator}'"))
                 } else {
@@ -64,7 +67,8 @@ class ExpressionValidator : SemanticRule { // --> Valido operadores y que sea co
         errors: MutableList<SemanticError>,
         env: Environment,
     ) {
-        if (OperationType.fromString(expr.operator) == OperationType.DIVIDE && errors.none { it.position == expr.position }) {
+        val isDivision = operationTypeOrNull(expr.operator) == OperationType.DIVIDE
+        if (isDivision && errors.none { it.position == expr.position }) {
             val rightValue = evaluateConstant(expr.right, env)
             if (rightValue == 0.0) {
                 errors.add(SemanticError(expr.position, "Division by zero"))
@@ -78,7 +82,8 @@ class ExpressionValidator : SemanticRule { // --> Valido operadores y que sea co
         rightType: String?,
         errors: MutableList<SemanticError>,
     ) {
-        if (OperationType.fromString(expr.operator) != OperationType.PLUS && (leftType != "number" || rightType != "number")) {
+        val isPlus = operationTypeOrNull(expr.operator) == OperationType.PLUS
+        if (!isPlus && (leftType != "number" || rightType != "number")) {
             errors.add(
                 SemanticError(
                     expr.position,
@@ -99,7 +104,8 @@ class ExpressionValidator : SemanticRule { // --> Valido operadores y que sea co
             is BinaryExpression -> {
                 val left = resolveType(expr.left, env) ?: return null
                 val right = resolveType(expr.right, env) ?: return null
-                if (OperationType.fromString(expr.operator) == OperationType.PLUS && (left == "string" || right == "string")) {
+                val isPlus = operationTypeOrNull(expr.operator) == OperationType.PLUS
+                if (isPlus && (left == "string" || right == "string")) {
                     "string"
                 } else if (left == "number" && right == "number") {
                     "number"
@@ -119,7 +125,7 @@ class ExpressionValidator : SemanticRule { // --> Valido operadores y que sea co
             is BinaryExpression -> {
                 val left = evaluateConstant(expr.left, env) ?: return null
                 val right = evaluateConstant(expr.right, env) ?: return null
-                val operationType = OperationType.fromString(expr.operator) ?: return null
+                val operationType = operationTypeOrNull(expr.operator) ?: return null
                 when (operationType) {
                     OperationType.PLUS -> left + right
                     OperationType.MINUS -> left - right
