@@ -1,13 +1,21 @@
 package grammar
 
 import engine.ParseResult
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import recurses.Assignment
-import recurses.NumberLiteral
 import recurses.Identifier
+import recurses.NumberLiteral
+import recurses.TokenType.COLON
+import recurses.TokenType.EOF
+import recurses.TokenType.EQUAL
+import recurses.TokenType.IDENTIFIER
+import recurses.TokenType.LET
+import recurses.TokenType.NUMBER_LITERAL
+import recurses.TokenType.SEMICOLON
 import recurses.VariableDeclaration
-import recurses.TokenType.*
 import tok
 
 class GrammarDeclarationTest {
@@ -138,7 +146,8 @@ class GrammarDeclarationTest {
             listOf(
                 tok(LET, "let"),
                 tok(IDENTIFIER, "x"),
-                tok(IDENTIFIER, "Number"), // falta el :
+                tok(IDENTIFIER, "Number"),
+                // falta el :
                 tok(SEMICOLON, ";"),
                 tok(EOF),
             )

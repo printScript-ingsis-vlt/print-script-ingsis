@@ -1,0 +1,39 @@
+@startuml
+title Interpreter — ejecución del AST
+
+skinparam monochrome true
+skinparam shadowing false
+autonumber
+
+actor Usuario
+participant "CLI / consumidor" as Consumer
+participant "Interpreter" as Interpreter
+participant "Environment" as Env
+participant "Output" as Output
+
+Usuario -> Consumer : solicita ejecutar Program
+Consumer -> Interpreter : run(program)
+activate Interpreter
+
+alt Caso 1: declaración
+  Interpreter -> Interpreter : evaluate(valor inicial)
+  Interpreter -> Env : declare(nombre, tipo, valor)
+  Env --> Interpreter : variable almacenada
+
+else Caso 2: asignación
+  Interpreter -> Interpreter : evaluate(expresión)
+  Interpreter -> Env : assign(nombre, valor)
+  Env --> Interpreter : variable actualizada
+
+else Caso 3: println
+  Interpreter -> Interpreter : evaluate(argumento)
+  Interpreter -> Output : write(valor.asString())
+  Output --> Usuario : muestra el valor
+end
+
+note right of Interpreter
+evaluate() resuelve literales,
+identificadores y expresiones binarias.
+end note
+deactivate Interpreter
+@enduml

@@ -91,7 +91,7 @@ class EngineTest {
 
         val result = rule.parse(tokens, 0) as ParseResult.Success
         assertNull(result.value)
-        assertEquals(0, result.next) // no avanzó
+        assertEquals(0, result.next)
     }
 
     // ---------- Choice ----------
@@ -113,7 +113,7 @@ class EngineTest {
         val rule =
             choice(
                 token(TokenType.LET),
-                token(TokenType.SEMICOLON), // ← uno que sí tengas
+                token(TokenType.SEMICOLON),
             )
         val tokens =
             listOf(

@@ -1,0 +1,45 @@
+@startuml
+title CLI — ejecución de comandos
+
+skinparam monochrome true
+skinparam shadowing false
+autonumber
+
+actor Usuario
+participant "MyLangCli" as CLI
+participant "StreamLexer" as Lexer
+participant "ConfigurableParser" as Parser
+participant "Módulo elegido" as Module
+participant "Consola / archivo" as Output
+
+Usuario -> CLI : mylang <comando> archivo
+CLI -> CLI : selecciona subcomando
+
+alt Caso 1: lex
+  CLI -> Lexer : tokenize(reader)
+  Lexer --> CLI : tokens o error léxico
+  CLI -> Output : imprime tokens o error
+
+else Caso 2: run, fmt o lint
+  CLI -> Lexer : tokenize(reader)
+  Lexer --> CLI : tokens
+  CLI -> Parser : parse(tokens)
+  Parser --> CLI : Program (AST)
+
+  alt run
+    CLI -> Module : Interpreter.run(program)
+    Module -> Output : imprime resultado
+  else fmt
+    CLI -> Module : Formatter.format(program)
+    Module -> Output : muestra o guarda texto
+  else lint
+    CLI -> Module : Linter.lint(program)
+    Module -> Output : muestra advertencias
+  end
+
+else Caso 3: error al cargar programa
+  CLI -> Lexer : tokenize(reader)
+  Lexer --> CLI : error léxico
+  CLI -> Output : informa error y detiene el comando
+end
+@enduml

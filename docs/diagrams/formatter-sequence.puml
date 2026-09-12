@@ -1,0 +1,45 @@
+@startuml
+title Formatter — generación de código formateado
+
+skinparam monochrome true
+skinparam shadowing false
+autonumber
+
+actor Usuario
+participant "CLI / consumidor" as Consumer
+participant "FormattingConfigLoader" as Config
+participant "PrintScriptFormatter" as Formatter
+participant "AST" as Program
+participant "Texto formateado" as Output
+
+Usuario -> Consumer : solicita fmt archivo
+Consumer -> Config : loadDefault()
+Config --> Consumer : FormattingRules
+Consumer -> Formatter : format(program)
+activate Formatter
+
+loop Por cada sentencia del AST
+  Formatter -> Program : obtiene siguiente sentencia
+
+  alt Caso 1: declaración
+    Formatter -> Formatter : aplica espacios de ':' y '='
+    Formatter -> Output : let nombre : tipo = valor;
+
+  else Caso 2: asignación o expresión
+    Formatter -> Formatter : aplica espacios alrededor del operador
+    Formatter -> Output : nombre = a + b;
+
+  else Caso 3: println
+    Formatter -> Formatter : agrega saltos previos configurados
+    Formatter -> Output : println(valor);
+  end
+end
+
+Formatter --> Consumer : une las líneas con '\\n'
+alt Se usó --write
+  Consumer -> Usuario : sobrescribe el archivo
+else Sin --write
+  Consumer --> Usuario : muestra el texto
+end
+deactivate Formatter
+@enduml

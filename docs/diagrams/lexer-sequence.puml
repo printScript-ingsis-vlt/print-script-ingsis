@@ -1,0 +1,51 @@
+@startuml
+title Lexer — tokenización de los casos principales
+
+skinparam monochrome true
+skinparam shadowing false
+autonumber
+
+actor Usuario
+participant "CLI / consumidor" as Consumer
+participant "StreamLexer" as Lexer
+participant "Reader" as Input
+participant "Token / Result" as Output
+
+Usuario -> Consumer : solicita tokenizar el código
+Consumer -> Lexer : tokenize(reader)
+activate Lexer
+
+note right of Lexer
+Para cada token:
+1. ignora espacios
+2. lee el siguiente carácter
+3. aplica la regla correspondiente
+end note
+
+alt Caso 1: palabra reservada o identificador
+  Consumer -> Lexer : entrada: "let total"
+  Lexer -> Input : lee caracteres
+  Lexer -> Lexer : reconoce palabra o identificador
+  Lexer -> Output : Success(LET, "let")
+  Lexer -> Output : Success(IDENTIFIER, "total")
+  Lexer -> Output : Success(EOF)
+  Output --> Consumer : tokens generados
+
+else Caso 2: número o string válido
+  Consumer -> Lexer : entrada: "12.5 \"hola\""
+  Lexer -> Input : lee caracteres
+  Lexer -> Lexer : acumula número / string hasta terminar
+  Lexer -> Output : Success(NUMBER_LITERAL, "12.5")
+  Lexer -> Output : Success(STRING_LITERAL, "hola")
+  Lexer -> Output : Success(EOF)
+  Output --> Consumer : tokens generados
+
+else Caso 3: carácter o string inválido
+  Consumer -> Lexer : entrada: "@"
+  Lexer -> Input : lee carácter
+  Lexer -> Lexer : no encuentra una regla válida
+  Lexer -> Output : Failure(LexicalError, posición, mensaje)
+  Output --> Consumer : detiene la tokenización y muestra el error
+end
+deactivate Lexer
+@enduml

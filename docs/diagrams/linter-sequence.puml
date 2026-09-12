@@ -1,0 +1,42 @@
+@startuml
+title Linter — revisión de estilo
+
+skinparam monochrome true
+skinparam shadowing false
+autonumber
+
+actor Usuario
+participant "CLI / consumidor" as Consumer
+participant "PrintScriptLinter" as Linter
+participant "Reglas activas" as Rules
+participant "Notificaciones" as Output
+
+Usuario -> Consumer : solicita lint archivo
+Consumer -> Linter : lint(program)
+activate Linter
+Linter -> Linter : crea reglas según LintConfig
+
+alt Caso 1: identificador correcto
+  Linter -> Rules : IdentifierFormatRule.check(program)
+  Rules -> Rules : verifica camelCase o snake_case
+  Rules --> Linter : sin advertencias
+
+else Caso 2: identificador no cumple formato
+  Linter -> Rules : IdentifierFormatRule.check(program)
+  Rules --> Output : WARNING identifier-format
+  Output --> Linter : notificación
+
+else Caso 3: println con expresión compleja
+  Linter -> Rules : PrintlnArgumentRule.check(program)
+  Rules --> Output : WARNING println-argument
+  Output --> Linter : notificación
+end
+
+Linter --> Consumer : List<LintNotification>
+alt Lista vacía
+  Consumer --> Usuario : "No se encontraron problemas."
+else Hay notificaciones
+  Consumer --> Usuario : muestra severidad, posición y mensaje
+end
+deactivate Linter
+@enduml
