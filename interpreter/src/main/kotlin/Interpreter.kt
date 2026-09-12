@@ -4,6 +4,7 @@ import recurses.Environment
 import recurses.Expr
 import recurses.Identifier
 import recurses.NumberLiteral
+import recurses.OperationType
 import recurses.PrintStatement
 import recurses.Program
 import recurses.Stmt
@@ -51,16 +52,17 @@ class Interpreter(private val output: Output) {
             is BinaryExpression -> {
                 val left = evaluate(expr.left)
                 val right = evaluate(expr.right)
+                val operationType = OperationType.fromString(expr.operator)
                 when {
-                    expr.operator == "+" && (left is StringValue || right is StringValue) ->
+                    operationType == OperationType.PLUS && (left is StringValue || right is StringValue) ->
                         StringValue(left.asString() + right.asString())
                     else ->
                         NumberValue(
-                            when (expr.operator) {
-                                "+" -> (left as NumberValue).value + (right as NumberValue).value
-                                "-" -> (left as NumberValue).value - (right as NumberValue).value
-                                "*" -> (left as NumberValue).value * (right as NumberValue).value
-                                else -> (left as NumberValue).value / (right as NumberValue).value
+                            when (operationType) {
+                                OperationType.PLUS -> (left as NumberValue).value + (right as NumberValue).value
+                                OperationType.MINUS -> (left as NumberValue).value - (right as NumberValue).value
+                                OperationType.MULTIPLY -> (left as NumberValue).value * (right as NumberValue).value
+                                OperationType.DIVIDE -> (left as NumberValue).value / (right as NumberValue).value
                             },
                         )
                 }
