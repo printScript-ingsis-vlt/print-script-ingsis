@@ -1,11 +1,11 @@
 package cli
 
+import cli.commands.FormatCommand
+import cli.commands.InterpretCommand
+import cli.commands.LexCommand
+import cli.commands.LintCommand
+import cli.commands.MyLangCli
 import com.github.ajalt.clikt.core.subcommands
-import commands.FormatCommand
-import commands.InterpretCommand
-import commands.LexCommand
-import commands.LintCommand
-import commands.MyLangCli
 
 fun main(args: Array<String>) =
     MyLangCli()

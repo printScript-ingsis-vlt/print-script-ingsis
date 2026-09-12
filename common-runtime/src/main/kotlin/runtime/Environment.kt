@@ -1,0 +1,29 @@
+package runtime
+
+import runtime.valuedataclass.Value
+
+class Environment {
+    // Guarda variable y su referencia {("x", runtime.Variable(Number, 5))}
+    // para no mutar el árbol al realizar una asignación
+    private val variables = mutableMapOf<String, Variable>()
+
+    fun declare(
+        name: String,
+        variable: Variable,
+    ) {
+        variables[name] = variable
+    }
+
+    // Busca si existe una variable declarada, medio bot el nombre
+    fun lookup(name: String): Variable? = variables[name]
+
+    fun assign(
+        name: String,
+        value: Value,
+    ) {
+        val variable =
+            variables [name] ?: throw
+                NoSuchElementException("Variable $name not found")
+        variable.value = value
+    }
+}

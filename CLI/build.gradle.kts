@@ -7,7 +7,8 @@ plugins {
 dependencies {
     implementation("com.github.ajalt.clikt:clikt:4.4.0")
     // llamo al clikt
-    implementation(project(":common"))
+    implementation(project(":common-ast"))
+    implementation(project(":common-result"))
     implementation(project(":lexer"))
     implementation(project(":parser"))
     implementation(project(":interpreter"))
