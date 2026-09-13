@@ -8,8 +8,8 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
 import formatter.FormattingConfigLoader
 import formatter.PrintScriptFormatter
+import interpreter.ConfigurableInterpreter
 import interpreter.ConsoleOutput
-import interpreter.Interpreter
 import lexer.StreamLexer
 import linter.PrintScriptLinter
 import parser.ConfigurableParser
@@ -39,7 +39,7 @@ class InterpretCommand : CliktCommand(
 
     override fun run() {
         val program = loadProgram(file) ?: return
-        Interpreter(ConsoleOutput).run(program)
+        ConfigurableInterpreter(ConsoleOutput).run(program)
     }
 }
 
