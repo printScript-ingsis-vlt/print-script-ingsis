@@ -15,41 +15,29 @@ import token.Token
 
 /** let IDENTIFIER : IDENTIFIER ('=' expression)? ';' */
 class DeclarationRule(expression: Rule) : StatementRule {
-    override val rule: Rule =
-        action(
-            seq(
-                LET,
-                IDENTIFIER,
-                COLON,
-                IDENTIFIER,
-                opt(seq(EQUAL, expression)),
-                SEMICOLON,
-            ),
-        ) { values ->
-            @Suppress("UNCHECKED_CAST")
-            val list = values as List<Any?>
+    private data class TypedName(val name: Token, val type: Token)
 
-            val letToken = list[0] as Token
-            val nameToken = list[1] as Token
-            val typeToken = list[TYPE_TOKEN_INDEX] as Token
-
-            val value: Expr? =
-                when (val optionalValue = list[OPTIONAL_VALUE_INDEX]) {
-                    null -> null
-                    is List<*> -> optionalValue[1] as Expr
-                    else -> null
-                }
-
-            VariableDeclaration(
-                name = nameToken.value,
-                type = typeToken.value,
-                value = value,
-                position = letToken.start,
-            )
+    // IDENTIFIER ':' IDENTIFIER -> nombre y tipo ya extraídos, sin listas anidadas sueltas
+    private val typedName: Rule =
+        action(seq(IDENTIFIER, COLON, IDENTIFIER)) { parts ->
+            val (name, _, type) = parts as List<*>
+            TypedName(name as Token, type as Token)
         }
 
-    private companion object {
-        const val TYPE_TOKEN_INDEX = 3
-        const val OPTIONAL_VALUE_INDEX = 4
-    }
+    // '=' expression -> solo el valor, el '=' no aporta nada al AST
+    private val initializer: Rule =
+        action(seq(EQUAL, expression)) { parts -> (parts as List<*>)[1] as Expr }
+
+    override val rule: Rule =
+        action(seq(LET, typedName, opt(initializer), SEMICOLON)) { values ->
+            val (letToken, declared, value) = values as List<*>
+            declared as TypedName
+
+            VariableDeclaration(
+                name = declared.name.value,
+                type = declared.type.value,
+                value = value as Expr?,
+                position = (letToken as Token).start,
+            )
+        }
 }
