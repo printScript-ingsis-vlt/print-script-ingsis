@@ -92,30 +92,40 @@ class LintCommand : CliktCommand(
 }
 
 private fun CliktCommand.loadProgram(file: File): Program? {
-    val tokens = when (val result = file.bufferedReader().use { StreamLexer.tokenize(it) }) {
-        is Result.Success -> result.value
-        is Result.Failure -> {
-            echo("Error léxico: ${result.error.message}", err = true)
-            null
-        }
-    }
-
-    val program = if (tokens != null) {
-        when (val result = ConfigurableParser().parse(tokens)) {
+    val tokens =
+        when (val result = file.bufferedReader().use { StreamLexer.tokenize(it) }) {
             is Result.Success -> result.value
             is Result.Failure -> {
-                result.error.forEach { error ->
-                    echo("Error de sintaxis: ${error.message}", err = true)
-                }
+                echo("Error léxico: ${result.error.message}", err = true)
                 null
             }
         }
-    } else {
-        null
+
+    val program =
+        if (tokens != null) {
+            when (val result = ConfigurableParser().parse(tokens)) {
+                is Result.Success -> result.value
+                is Result.Failure -> {
+                    result.error.forEach { error ->
+                        echo("Error de sintaxis: ${error.message}", err = true)
+                    }
+                    null
+                }
+            }
+        } else {
+            null
+        }
+
+    if (program != null && !validateSemantics(program)) {
+        return null
     }
 
-    if (program != null) {
-        val semanticErrors = SemanticAnalyzer(
+    return program
+}
+
+private fun CliktCommand.validateSemantics(program: Program): Boolean {
+    val semanticErrors =
+        SemanticAnalyzer(
             listOf(
                 ExpressionValidator(),
                 DeclarationValidator(),
@@ -123,16 +133,14 @@ private fun CliktCommand.loadProgram(file: File): Program? {
             ),
         ).analyze(program)
 
-        if (semanticErrors.isNotEmpty()) {
-            semanticErrors.forEach { error ->
-                echo(
-                    "Error semántico: ${error.position.line}:${error.position.column} - ${error.message}",
-                    err = true,
-                )
-            }
-            return null
-        }
+    if (semanticErrors.isEmpty()) return true
+
+    semanticErrors.forEach { error ->
+        echo(
+            "Error semántico: ${error.position.line}:${error.position.column} - ${error.message}",
+            err = true,
+        )
     }
 
-    return program
+    return false
 }
