@@ -120,6 +120,7 @@ class StreamLexer(
                 reader = StringReader(source),
                 matchers = LexerMatcherFactory.create(configuration),
             )
+
         // Tokeniza un archivo/stream completo
         fun tokenize(
             reader: Reader,
