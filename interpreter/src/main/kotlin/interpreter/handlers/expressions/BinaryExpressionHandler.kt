@@ -1,4 +1,4 @@
-package handlers.expressions
+package interpreter.handlers.expressions
 
 import ast.BinaryExpression
 import ast.Expr

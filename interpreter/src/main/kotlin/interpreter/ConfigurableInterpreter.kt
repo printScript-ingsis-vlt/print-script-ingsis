@@ -3,13 +3,13 @@ package interpreter
 import ast.Expr
 import ast.Program
 import ast.Stmt
-import handlers.expressions.BinaryExpressionHandler
-import handlers.expressions.IdentifierHandler
-import handlers.expressions.NumberLiteralHandler
-import handlers.expressions.StringLiteralHandler
-import handlers.statements.AssignmentHandler
-import handlers.statements.PrintStatementHandler
-import handlers.statements.VariableDeclarationHandler
+import interpreter.handlers.expressions.BinaryExpressionHandler
+import interpreter.handlers.expressions.IdentifierHandler
+import interpreter.handlers.expressions.NumberLiteralHandler
+import interpreter.handlers.expressions.StringLiteralHandler
+import interpreter.handlers.statements.AssignmentHandler
+import interpreter.handlers.statements.PrintStatementHandler
+import interpreter.handlers.statements.VariableDeclarationHandler
 import runtime.Environment
 import runtime.valuedataclass.Value
 

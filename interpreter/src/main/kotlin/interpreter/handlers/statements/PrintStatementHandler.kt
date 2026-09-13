@@ -1,4 +1,4 @@
-package handlers.statements
+package interpreter.handlers.statements
 
 import ast.Expr
 import ast.PrintStatement
