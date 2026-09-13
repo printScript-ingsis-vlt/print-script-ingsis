@@ -1,5 +1,5 @@
 @startuml
-title Lexer — selección y ejecución de TokenMatcher
+title Lexer — configuración por versión y ejecución de TokenMatcher
 
 skinparam monochrome true
 skinparam shadowing false
@@ -7,7 +7,9 @@ autonumber
 
 actor Usuario
 participant "CLI / consumidor" as Consumer
+participant "LexerConfigurations" as Configurations
 participant "StreamLexer" as Lexer
+participant "LexerMatcherFactory" as Factory
 participant "LexerCursor" as Cursor
 participant "Reader" as Input
 participant "TokenMatcher[]" as Matchers
@@ -16,9 +18,16 @@ participant "NumberMatcher" as Number
 participant "StringMatcher" as String
 participant "OperatorMatcher" as Operator
 
-Usuario -> Consumer : solicita tokenizar el código
-Consumer -> Lexer : tokenize()
+Usuario -> Consumer : solicita tokenizar el código para una versión
+Consumer -> Configurations : selecciona v1_0 o v1_1
+Configurations --> Consumer : LexerConfiguration
+Consumer -> Lexer : tokenize(source, configuration)
 activate Lexer
+
+Lexer -> Factory : create(configuration)
+Factory -> Identifier : IdentifierMatcher(configuration.keywords)
+Factory -> Operator : OperatorMatcher(configuration.operators)
+Factory --> Lexer : matchers
 
 loop mientras hasNext()
   Lexer -> Cursor : skipWhitespace()
@@ -37,10 +46,14 @@ loop mientras hasNext()
     Matchers --> Lexer : candidatos
 
     alt exactamente un matcher
-      alt identificador o keyword: "let"
+      alt identificador o keyword configurada: "let" o "const"
         Lexer -> Identifier : match(cursor, start)
         Identifier -> Cursor : peek()/read() hasta delimitador
-        Identifier --> Lexer : Success(LET, "let")
+        Identifier --> Lexer : Success(TokenType, texto)
+        note right
+          v1_0: "const" -> IDENTIFIER
+          v1_1: "const" -> CONST
+        end note
 
       else número decimal válido: "12.5"
         Lexer -> Number : match(cursor, start)
@@ -52,10 +65,10 @@ loop mientras hasNext()
         String -> Cursor : read hasta comilla de cierre
         String --> Lexer : Success(STRING_LITERAL, "hola")
 
-      else operador con máxima coincidencia: "==" (ejemplo no pedido en la consigna pero con soporte)
+      else símbolo configurado: "+" o "{" en v1_1
         Lexer -> Operator : match(cursor, start)
-        Operator -> Cursor : peek()/read() mientras exista extensión
-        Operator --> Lexer : Success(EQUAL_EQUAL, "==")
+        Operator -> Cursor : peek()/read() mientras exista símbolo configurado
+        Operator --> Lexer : Success(TokenType, texto)
 
       else token malformado: "7."
         Lexer -> Number : match(cursor, start)
@@ -64,7 +77,7 @@ loop mientras hasNext()
         Lexer --> Consumer : detiene la tokenización
       end
 
-    else ningún matcher acepta el carácter: "@"
+    else ningún matcher acepta el carácter: "@" o "{" en v1_0
       Lexer --> Consumer : Failure(LexicalError, carácter inesperado)
 
     else más de un matcher acepta el carácter

@@ -13,6 +13,7 @@ La arquitectura se organiza en una serie de módulos desacoplados y secuenciales
     * **Lectura por flujo (Streaming):** El lexer procesa la entrada carácter por carácter sin necesidad de cargar la totalidad del archivo en memoria, permitiendo un mecanismo de *lookahead* (inspeccionar el siguiente carácter sin consumirlo) para resolver ambigüedades (ej. distinguir números enteros de decimales).
     * **Trazabilidad de Posición:** Cada token registrado almacena su coordenada exacta (línea y columna de inicio y fin), indispensable para reportar diagnósticos precisos en etapas posteriores.
     * **Manejo funcional de fallos:** Los caracteres inesperados o literales mal delimitados se encapsulan como errores léxicos específicos en lugar de interrumpir abruptamente el sistema.
+    * **Configuración por versión:** El consumidor provee una `LexerConfiguration` correspondiente a la versión de PrintScript que desea procesar. La configuración define qué palabras se reconocen como keywords y qué símbolos están habilitados. Por ejemplo, `const` se tokeniza como `IDENTIFIER` en 1.0 y como `CONST` en 1.1.
 
 ---
 
@@ -85,7 +86,17 @@ let message: string = "Texto sin cerrar;
 
 ---
 
-### Caso 3: Detección de Error Sintáctico
+### Caso 3: Token no habilitado en la versión seleccionada
+```printscript
+{
+```
+* **Etapa de corte:** **Lexer**
+* **Comportamiento:** Al procesar el símbolo con la configuración de PrintScript 1.0, el lexer no encuentra un matcher que pueda reconocer `{` y emite un error léxico de carácter inesperado.
+* **Consideración:** La configuración de 1.1 sí habilita este símbolo y lo tokeniza como `LEFT_BRACE`. Las keywords nuevas, en cambio, se tokenizan como `IDENTIFIER` en 1.0 y requieren que parser o análisis semántico reporten su uso no permitido según el contexto.
+
+---
+
+### Caso 4: Detección de Error Sintáctico
 ```printscript
 let score = 20;
 ```
@@ -95,7 +106,7 @@ let score = 20;
 
 ---
 
-### Caso 4: Detección de Error Semántico (Incompatibilidad de Tipos)
+### Caso 5: Detección de Error Semántico (Incompatibilidad de Tipos)
 ```printscript
 let count: number = "veinte";
 ```
@@ -107,7 +118,7 @@ let count: number = "veinte";
 
 ---
 
-### Caso 5: Aplicación de Reglas de Linter (Advertencias de Calidad)
+### Caso 6: Aplicación de Reglas de Linter (Advertencias de Calidad)
 ```printscript
 let user_name: string = "Alice";
 println(10 + 20);
