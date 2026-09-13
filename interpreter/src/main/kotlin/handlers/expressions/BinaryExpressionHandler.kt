@@ -43,7 +43,6 @@ class BinaryExpressionHandler : ExpressionHandler {
                         OperationType.MINUS -> leftNum - rightNum
                         OperationType.MULTIPLY -> leftNum * rightNum
                         OperationType.DIVIDE -> leftNum / rightNum
-                        else -> error("Unsupported operator: ${binary.operator}")
                     },
                 )
             }
