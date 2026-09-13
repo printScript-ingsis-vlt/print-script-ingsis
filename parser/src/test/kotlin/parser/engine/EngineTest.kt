@@ -137,4 +137,42 @@ class EngineTest {
         val result = rule.parse(tokens, 0) as ParseResult.Success
         assertEquals(42.0, result.value)
     }
+
+    // ---------- Ref ----------
+    @Test
+    fun `Ref delegates to the resolved rule`() {
+        val rule = ref { token(TokenType.IDENTIFIER) }
+        val tokens = listOf(tok(TokenType.IDENTIFIER, "x"), tok(TokenType.EOF))
+
+        val result = rule.parse(tokens, 0)
+
+        assertTrue(result is ParseResult.Success)
+        assertEquals("x", ((result as ParseResult.Success).value as token.Token).value)
+    }
+
+    @Test
+    fun `Ref allows a rule to reference itself recursively`() {
+        // nested := '(' nested ')' | IDENTIFIER
+        lateinit var nested: Rule
+        nested =
+            choice(
+                seq(token(TokenType.LEFT_PAREN), ref { nested }, token(TokenType.RIGHT_PAREN)),
+                token(TokenType.IDENTIFIER),
+            )
+
+        val tokens =
+            listOf(
+                tok(TokenType.LEFT_PAREN, "("),
+                tok(TokenType.LEFT_PAREN, "("),
+                tok(TokenType.IDENTIFIER, "x"),
+                tok(TokenType.RIGHT_PAREN, ")"),
+                tok(TokenType.RIGHT_PAREN, ")"),
+                tok(TokenType.EOF),
+            )
+
+        val result = nested.parse(tokens, 0)
+
+        assertTrue(result is ParseResult.Success)
+        assertEquals(5, (result as ParseResult.Success).next)
+    }
 }

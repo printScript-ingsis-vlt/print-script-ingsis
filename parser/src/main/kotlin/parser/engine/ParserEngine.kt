@@ -129,6 +129,14 @@ data class Action(val rule: Rule, val transform: (Any?) -> Any?) : Rule {
     }
 }
 
+/** referencia perezosa, para reglas recursivas */
+data class Ref(private val resolve: () -> Rule) : Rule {
+    override fun parse(
+        tokens: List<Token>,
+        pos: Int,
+    ): ParseResult = resolve().parse(tokens, pos)
+}
+
 // Helpers de construcción (azúcar sintáctico)
 fun seq(vararg rules: Rule) = Seq(rules.toList())
 
@@ -137,6 +145,8 @@ fun choice(vararg rules: Rule) = Choice(rules.toList())
 fun many(rule: Rule) = Many(rule)
 
 fun opt(rule: Rule) = Opt(rule)
+
+fun ref(resolve: () -> Rule) = Ref(resolve)
 
 fun token(
     type: TokenType,
