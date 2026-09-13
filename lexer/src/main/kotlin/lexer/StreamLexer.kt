@@ -1,10 +1,6 @@
 package lexer
 
 import ast.Position
-import lexer.implementations.IdentifierMatcher
-import lexer.implementations.NumberMatcher
-import lexer.implementations.OperatorMatcher
-import lexer.implementations.StringMatcher
 import result.LexicalError
 import result.Result
 import token.Token
@@ -14,7 +10,7 @@ import java.io.StringReader
 
 class StreamLexer(
     reader: Reader,
-    private val matchers: List<TokenMatcher> = defaultMatchers(DEFAULT_CONFIGURATION),
+    private val matchers: List<TokenMatcher> = LexerMatcherFactory.create(LexerConfigurations.default),
 ) : Lexer {
     constructor(
         reader: Reader,
@@ -23,7 +19,7 @@ class StreamLexer(
     ) : this(
         reader = reader,
         matchers =
-            defaultMatchers(
+            LexerMatcherFactory.create(
                 LexerConfiguration(
                     keywords = keywords,
                     operators = singleCharTokens.mapKeys { (character, _) -> character.toString() },
@@ -114,54 +110,26 @@ class StreamLexer(
         )
     }
 
-    companion object { // --> La configuracion default con la cual se inicializa el lexer
-        private val DEFAULT_CONFIGURATION =
-            LexerConfiguration(
-                keywords =
-                    mapOf(
-                        "let" to TokenType.LET,
-                    ),
-                operators =
-                    mapOf(
-                        ":" to TokenType.COLON,
-                        "=" to TokenType.EQUAL,
-                        ";" to TokenType.SEMICOLON,
-                        "+" to TokenType.PLUS,
-                        "-" to TokenType.MINUS,
-                        "*" to TokenType.STAR,
-                        "/" to TokenType.SLASH,
-                        "(" to TokenType.LEFT_PAREN,
-                        ")" to TokenType.RIGHT_PAREN,
-                    ),
-            )
-
-        fun defaultMatchers(configuration: LexerConfiguration): List<TokenMatcher> =
-            listOf(
-                StringMatcher(),
-                NumberMatcher(),
-                // Inyección de keywords al matcher de identificadores.
-                IdentifierMatcher(configuration.keywords),
-                // Inyección de operadores al matcher correspondiente.
-                OperatorMatcher(configuration.operators),
-            )
-
+    companion object {
+        // Controla lectura token a token (let x -> LET, IDENTIFIER)
         fun fromString(
             source: String,
-            configuration: LexerConfiguration = DEFAULT_CONFIGURATION,
+            configuration: LexerConfiguration = LexerConfigurations.default,
         ): StreamLexer =
             StreamLexer(
                 reader = StringReader(source),
-                matchers = defaultMatchers(configuration),
+                matchers = LexerMatcherFactory.create(configuration),
             )
-
+        // Tokeniza un archivo/stream completo
         fun tokenize(
             reader: Reader,
-            configuration: LexerConfiguration = DEFAULT_CONFIGURATION,
-        ): Result<List<Token>, LexicalError> = StreamLexer(reader, defaultMatchers(configuration)).tokenize()
+            configuration: LexerConfiguration = LexerConfigurations.default,
+        ): Result<List<Token>, LexicalError> = StreamLexer(reader, LexerMatcherFactory.create(configuration)).tokenize()
 
+        // Tokeniza un string completo
         fun tokenize(
             source: String,
-            configuration: LexerConfiguration = DEFAULT_CONFIGURATION,
+            configuration: LexerConfiguration = LexerConfigurations.default,
         ): Result<List<Token>, LexicalError> = tokenize(StringReader(source), configuration)
     }
 }
