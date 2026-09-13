@@ -7,5 +7,11 @@ import runtime.valuedataclass.Value
 
 interface StatementHandler {
     fun canHandle(stmt: Stmt): Boolean
-    fun execute(stmt: Stmt, environment: Environment, evaluate: (Expr) -> Value, output: Output)
+
+    fun execute(
+        stmt: Stmt,
+        environment: Environment,
+        evaluate: (Expr) -> Value,
+        output: Output,
+    )
 }

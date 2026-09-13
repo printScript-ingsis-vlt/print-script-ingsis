@@ -9,10 +9,15 @@ import runtime.valuedataclass.Value
 class IdentifierHandler : ExpressionHandler {
     override fun canHandle(expr: Expr) = expr is Identifier
 
-    override fun evaluate(expr: Expr, environment: Environment, evaluate: (Expr) -> Value): Value {
+    override fun evaluate(
+        expr: Expr,
+        environment: Environment,
+        evaluate: (Expr) -> Value,
+    ): Value {
         val id = expr as Identifier
-        val variable = environment.lookup(id.name)
-            ?: error("Undefined variable '${id.name}'")
+        val variable =
+            environment.lookup(id.name)
+                ?: error("Undefined variable '${id.name}'")
         return variable.value
             ?: error("Variable '${id.name}' is not initialized")
     }

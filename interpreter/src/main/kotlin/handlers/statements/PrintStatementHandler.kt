@@ -11,7 +11,12 @@ import runtime.valuedataclass.Value
 class PrintStatementHandler : StatementHandler {
     override fun canHandle(stmt: Stmt) = stmt is PrintStatement
 
-    override fun execute(stmt: Stmt, environment: Environment, evaluate: (Expr) -> Value, output: Output) {
+    override fun execute(
+        stmt: Stmt,
+        environment: Environment,
+        evaluate: (Expr) -> Value,
+        output: Output,
+    ) {
         val print = stmt as PrintStatement
         val result = evaluate(print.argument)
         output.write(result.asString())
