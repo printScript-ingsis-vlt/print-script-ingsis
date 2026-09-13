@@ -22,7 +22,7 @@ class GrammarExpressionTest {
     fun `single literal`() {
         val tokens = listOf(tok(NUMBER_LITERAL, "5"), tok(EOF))
 
-        val result = Grammar.expression.parse(tokens, 0)
+        val result = ExpressionRule.expression.parse(tokens, 0)
 
         assertTrue(result is ParseResult.Success)
         val expr = (result as ParseResult.Success).value as NumberLiteral
@@ -42,7 +42,7 @@ class GrammarExpressionTest {
                 tok(EOF),
             )
 
-        val result = Grammar.expression.parse(tokens, 0)
+        val result = ExpressionRule.expression.parse(tokens, 0)
 
         assertTrue(result is ParseResult.Success)
         val expr = (result as ParseResult.Success).value as BinaryExpression
@@ -68,7 +68,7 @@ class GrammarExpressionTest {
                 tok(EOF),
             )
 
-        val result = Grammar.expression.parse(tokens, 0)
+        val result = ExpressionRule.expression.parse(tokens, 0)
 
         assertTrue(result is ParseResult.Success)
         val expr = (result as ParseResult.Success).value as BinaryExpression
@@ -96,7 +96,7 @@ class GrammarExpressionTest {
                 tok(EOF),
             )
 
-        val result = Grammar.expression.parse(tokens, 0)
+        val result = ExpressionRule.expression.parse(tokens, 0)
 
         assertTrue(result is ParseResult.Success)
         val expr = (result as ParseResult.Success).value as BinaryExpression
@@ -113,7 +113,7 @@ class GrammarExpressionTest {
     fun `identifier alone is still a valid expression`() {
         val tokens = listOf(tok(IDENTIFIER, "x"), tok(EOF))
 
-        val result = Grammar.expression.parse(tokens, 0)
+        val result = ExpressionRule.expression.parse(tokens, 0)
 
         assertTrue(result is ParseResult.Success)
         assertEquals("x", ((result as ParseResult.Success).value as Identifier).name)
