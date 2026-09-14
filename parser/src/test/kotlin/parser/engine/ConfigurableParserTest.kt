@@ -217,7 +217,7 @@ class ConfigurableParserTest {
         val onlyDeclarations =
             ConfigurableParser(
                 GrammarConfiguration(
-                    statementRules = listOf(DeclarationRule(ExpressionRule.expression)),
+                    statementRules = listOf(DeclarationRule(ExpressionRule().expression)),
                 ),
             )
 

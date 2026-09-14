@@ -19,8 +19,8 @@ import token.TokenType.NUMBER_LITERAL
 import token.TokenType.SEMICOLON
 
 class GrammarDeclarationTest {
-    private val assignment = AssignmentRule(ExpressionRule.expression).rule
-    private val declaration = DeclarationRule(ExpressionRule.expression).rule
+    private val assignment = AssignmentRule(ExpressionRule().expression).rule
+    private val declaration = DeclarationRule(ExpressionRule().expression).rule
 
     @Test
     fun `assignment with number literal`() {

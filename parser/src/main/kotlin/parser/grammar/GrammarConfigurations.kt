@@ -1,7 +1,7 @@
 package parser.grammar
 
 object GrammarConfigurations {
-    private val expression = ExpressionRule.expression
+    private val expression = ExpressionRule().expression
 
     val v1_0 =
         GrammarConfiguration(

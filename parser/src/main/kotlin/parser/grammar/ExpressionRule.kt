@@ -5,9 +5,9 @@ import ast.Expr
 import ast.Identifier
 import ast.NumberLiteral
 import ast.StringLiteral
+import parser.engine.Choice
 import parser.engine.Rule
 import parser.engine.action
-import parser.engine.choice
 import parser.engine.many
 import parser.engine.ref
 import parser.engine.seq
@@ -18,14 +18,25 @@ import token.Token
 import token.TokenType
 
 /**
- * expresiones con precedencia:
- * primary := NUMBER_LITERAL | STRING_LITERAL | IDENTIFIER | '(' expression ')'
- * term := primary (('*' | '/') primary)*
- * expression := term (('+' | '-') term)*
+ * expresiones con precedencia, extensible sin editar esta clase:
+ * - [extraPrimaries] suma alternativas a `primary` (ej. literales booleanos)
+ * - [operatorLevels] suma niveles de precedencia (ej. comparaciones/lógicos), de mayor a
+ *   menor precedencia
+ *
+ * primary := NUMBER_LITERAL | STRING_LITERAL | IDENTIFIER | '(' expression ')' | extraPrimaries
+ * cada nivel de operatorLevels es: nivelAnterior (operadorDelNivel nivelAnterior)*
  */
-object ExpressionRule {
-    private val primary: Rule =
-        choice(
+class ExpressionRule(
+    extraPrimaries: List<Rule> = emptyList(),
+    operatorLevels: List<Set<TokenType>> = DEFAULT_OPERATOR_LEVELS,
+) {
+    private val primary: Rule = Choice(basePrimaries() + extraPrimaries)
+
+    val expression: Rule =
+        operatorLevels.fold(primary) { level, operators -> withOperatorLevel(level, operators) }
+
+    private fun basePrimaries(): List<Rule> =
+        listOf(
             action(token(TokenType.NUMBER_LITERAL)) { t -> NumberLiteral((t as Token).value.toDouble(), t.start) },
             action(token(TokenType.STRING_LITERAL)) { t -> StringLiteral((t as Token).value, t.start) },
             action(token(TokenType.IDENTIFIER)) { t -> Identifier((t as Token).value, t.start) },
@@ -34,14 +45,12 @@ object ExpressionRule {
             },
         )
 
-    private val term: Rule =
+    private fun withOperatorLevel(
+        level: Rule,
+        operators: Set<TokenType>,
+    ): Rule =
         action(
-            seq(primary, many(seq(choice(token(TokenType.STAR), token(TokenType.SLASH)), primary))),
-        ) { values -> foldLeftAssociative(values) }
-
-    val expression: Rule =
-        action(
-            seq(term, many(seq(choice(token(TokenType.PLUS), token(TokenType.MINUS)), term))),
+            seq(level, many(seq(Choice(operators.map { token(it) }), level))),
         ) { values -> foldLeftAssociative(values) }
 
     // pliega [primero, [[operador, siguiente], [operador, siguiente], ...]] en BinaryExpression
@@ -57,5 +66,14 @@ object ExpressionRule {
         }
 
         return left
+    }
+
+    private companion object {
+        // orden: de mayor a menor precedencia -> '*','/' se evalúan antes que '+','-'
+        val DEFAULT_OPERATOR_LEVELS =
+            listOf(
+                setOf(TokenType.STAR, TokenType.SLASH),
+                setOf(TokenType.PLUS, TokenType.MINUS),
+            )
     }
 }

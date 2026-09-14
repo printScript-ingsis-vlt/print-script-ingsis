@@ -14,7 +14,7 @@ import token.TokenType.RIGHT_PAREN
 import token.TokenType.SEMICOLON
 
 class PrintStatementRuleTest {
-    private val rule = PrintStatementRule(ExpressionRule.expression).rule
+    private val rule = PrintStatementRule(ExpressionRule().expression).rule
 
     @Test
     fun `parsea println con un identificador`() {
