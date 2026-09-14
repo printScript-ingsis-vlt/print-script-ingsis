@@ -19,6 +19,9 @@ import token.TokenType.NUMBER_LITERAL
 import token.TokenType.SEMICOLON
 
 class GrammarDeclarationTest {
+    private val assignment = AssignmentRule(ExpressionRule().expression).rule
+    private val declaration = DeclarationRule(ExpressionRule().expression).rule
+
     @Test
     fun `assignment with number literal`() {
         // a = 10;
@@ -31,7 +34,7 @@ class GrammarDeclarationTest {
                 tok(EOF),
             )
 
-        val result = Grammar.assignment.parse(tokens, 0)
+        val result = assignment.parse(tokens, 0)
 
         assertTrue(result is ParseResult.Success)
         val stmt = (result as ParseResult.Success).value as Assignment
@@ -54,7 +57,7 @@ class GrammarDeclarationTest {
                 tok(EOF),
             )
 
-        val result = Grammar.assignment.parse(tokens, 0)
+        val result = assignment.parse(tokens, 0)
 
         assertTrue(result is ParseResult.Success)
         val stmt = (result as ParseResult.Success).value as Assignment
@@ -75,7 +78,7 @@ class GrammarDeclarationTest {
                 tok(EOF),
             )
 
-        val result = Grammar.assignment.parse(tokens, 0)
+        val result = assignment.parse(tokens, 0)
         assertTrue(result is ParseResult.Failure)
     }
 
@@ -89,7 +92,7 @@ class GrammarDeclarationTest {
                 tok(EOF),
             )
 
-        val result = Grammar.assignment.parse(tokens, 0)
+        val result = assignment.parse(tokens, 0)
         assertTrue(result is ParseResult.Failure)
     }
 
@@ -107,7 +110,7 @@ class GrammarDeclarationTest {
                 tok(EOF),
             )
 
-        val result = Grammar.declaration.parse(tokens, 0)
+        val result = declaration.parse(tokens, 0)
 
         assertTrue(result is ParseResult.Success)
         val stmt = (result as ParseResult.Success).value as VariableDeclaration
@@ -131,7 +134,7 @@ class GrammarDeclarationTest {
                 tok(EOF),
             )
 
-        val result = Grammar.declaration.parse(tokens, 0) as ParseResult.Success
+        val result = declaration.parse(tokens, 0) as ParseResult.Success
         val stmt = result.value as VariableDeclaration
 
         assertEquals("y", stmt.name)
@@ -152,7 +155,7 @@ class GrammarDeclarationTest {
                 tok(EOF),
             )
 
-        val result = Grammar.declaration.parse(tokens, 0)
+        val result = declaration.parse(tokens, 0)
         assertTrue(result is ParseResult.Failure)
     }
 
@@ -167,7 +170,7 @@ class GrammarDeclarationTest {
                 tok(EOF),
             )
 
-        val result = Grammar.declaration.parse(tokens, 0)
+        val result = declaration.parse(tokens, 0)
         assertTrue(result is ParseResult.Failure)
     }
 }

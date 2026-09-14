@@ -116,6 +116,24 @@ data class TokenRule(val type: TokenType, val expected: String = type.name) : Ru
     }
 }
 
+/** Terminal por TokenType + valor exacto (para palabras como "println" que no son keywords del lexer) */
+data class LiteralRule(val type: TokenType, val value: String) : Rule {
+    override fun parse(
+        tokens: List<Token>,
+        pos: Int,
+    ): ParseResult {
+        if (pos >= tokens.size) {
+            return ParseResult.Failure(SyntaxError(Position(0, 0), "Unexpected end of input, expected '$value'"))
+        }
+        val token = tokens[pos]
+        return if (token.type == type && token.value == value) {
+            ParseResult.Success(token, pos + 1)
+        } else {
+            ParseResult.Failure(SyntaxError(token.start, "Expected '$value', got '${token.value}'"))
+        }
+    }
+}
+
 /** Acción: transforma el resultado de una regla en un nodo del AST */
 data class Action(val rule: Rule, val transform: (Any?) -> Any?) : Rule {
     override fun parse(
@@ -129,6 +147,14 @@ data class Action(val rule: Rule, val transform: (Any?) -> Any?) : Rule {
     }
 }
 
+/** referencia perezosa, para reglas recursivas */
+data class Ref(private val resolve: () -> Rule) : Rule {
+    override fun parse(
+        tokens: List<Token>,
+        pos: Int,
+    ): ParseResult = resolve().parse(tokens, pos)
+}
+
 // Helpers de construcción (azúcar sintáctico)
 fun seq(vararg rules: Rule) = Seq(rules.toList())
 
@@ -138,10 +164,17 @@ fun many(rule: Rule) = Many(rule)
 
 fun opt(rule: Rule) = Opt(rule)
 
+fun ref(resolve: () -> Rule) = Ref(resolve)
+
 fun token(
     type: TokenType,
     expected: String = type.name,
 ) = TokenRule(type, expected)
+
+fun literal(
+    type: TokenType,
+    value: String,
+) = LiteralRule(type, value)
 
 fun action(
     rule: Rule,

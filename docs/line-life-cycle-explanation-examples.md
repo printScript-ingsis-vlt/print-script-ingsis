@@ -20,9 +20,10 @@ La arquitectura se organiza en una serie de módulos desacoplados y secuenciales
 ### 2.2. Análisis Sintáctico (Parser)
 * **Propósito:** Validar que la secuencia de tokens cumpla con la gramática formal del lenguaje y estructurarla en un **Árbol de Sintaxis Abstracta (AST)**.
 * **Consideraciones de Diseño:**
-    * **Motor Declarativo por Reglas:** En lugar de codificar métodos rígidos por cada producción gramatical, la gramática se compone mediante combinadores de reglas (secuencias, alternativas, elementos opcionales y repeticiones).
+    * **Motor Declarativo por Reglas:** En lugar de codificar métodos rígidos por cada producción gramatical, la gramática se compone mediante combinadores de reglas (secuencias, alternativas, elementos opcionales, repeticiones y referencias perezosas para reglas recursivas).
     * **Construcción desacoplada del AST:** Cada regla gramatical exitosa mapea sus tokens a nodos del AST fuertemente tipados (`Program`, `VariableDeclaration`, `PrintStatement`, `BinaryExpression`, etc.).
-    * **Precedencia de Operadores:** Las expresiones se estructuran jerárquicamente para garantizar que operaciones de mayor precedencia (multiplicación y división) se evalúen antes que las de menor precedencia (suma y resta).
+    * **Precedencia de Operadores:** Las expresiones se estructuran jerárquicamente (`primary → term → expression`) para garantizar que operaciones de mayor precedencia (multiplicación y división) se evalúen antes que las de menor precedencia (suma y resta), soportando además paréntesis para alterar ese orden.
+    * **Configuración por lista de reglas:** El parser recibe una `GrammarConfiguration` con la lista de sentencias que acepta (declaraciones, asignaciones, `println`, ...), en vez de tener una gramática fija. Sumar una construcción nueva del lenguaje es agregar una regla a esa lista, sin modificar las reglas existentes ni el motor de combinadores.
 
 ---
 
