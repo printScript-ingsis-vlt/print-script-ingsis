@@ -124,6 +124,37 @@ class ExpressionHandlersTest {
         assertEquals("Unknown operator '%'", unknownAnalysis.errors.single().message)
     }
 
+    @Test
+    fun `reports division by a computed or referenced zero value`() {
+        val computedZero =
+            BinaryExpression(
+                NumberLiteral(5.0, pos()),
+                "-",
+                NumberLiteral(5.0, pos()),
+                pos(),
+            )
+        val division = BinaryExpression(NumberLiteral(10.0, pos()), "/", computedZero, pos())
+        val context = SemanticContext()
+        context.environment.declare("zero", Variable("number", NumberValue(0.0)))
+        val referencedDivision =
+            BinaryExpression(
+                NumberLiteral(1.0, pos()),
+                "/",
+                Identifier("zero", pos()),
+                pos(),
+            )
+        val analyzer = createAnalyzer()
+
+        assertEquals(
+            "Division by zero",
+            analyzer.analyze(division, context).errors.single().message,
+        )
+        assertEquals(
+            "Division by zero",
+            analyzer.analyze(referencedDivision, context).errors.single().message,
+        )
+    }
+
     private fun createAnalyzer(): ExpressionSemanticAnalyzer =
         ExpressionSemanticAnalyzer(
             listOf(

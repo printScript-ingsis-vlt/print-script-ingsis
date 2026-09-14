@@ -10,19 +10,9 @@ import ast.VariableDeclaration
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import semantic.rules.DeclarationValidator
-import semantic.rules.ExpressionValidator
-import semantic.rules.VariableValidator
 
 class SemanticAnalyzerTest {
-    private val analyzer =
-        SemanticAnalyzer(
-            listOf(
-                VariableValidator(),
-                DeclarationValidator(),
-                ExpressionValidator(),
-            ),
-        )
+    private val analyzer = SemanticAnalyzer()
 
     @Test
     fun `analyzer updates number variables after declarations and assignments`() {
