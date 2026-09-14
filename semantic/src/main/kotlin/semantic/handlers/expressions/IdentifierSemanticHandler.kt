@@ -3,7 +3,6 @@ package semantic.handlers.expressions
 import ast.Expr
 import ast.Identifier
 import result.SemanticError
-import runtime.valuedataclass.NumberValue
 import semantic.SemanticContext
 import semantic.expressions.ExpressionAnalysis
 import semantic.expressions.ExpressionSemanticHandler
@@ -17,10 +16,10 @@ class IdentifierSemanticHandler : ExpressionSemanticHandler {
         analyzeChild: (Expr) -> ExpressionAnalysis,
     ): ExpressionAnalysis {
         val identifier = expression as Identifier
-        val variable = context.environment.lookup(identifier.name)
+        val symbol = context.symbols.lookup(identifier.name)
 
         // Variable no declarada
-        if (variable == null) {
+        if (symbol == null) {
             return ExpressionAnalysis(
                 type = null,
                 errors = listOf(SemanticError(identifier.position, "Variable '${identifier.name}' is not declared")),
@@ -29,16 +28,16 @@ class IdentifierSemanticHandler : ExpressionSemanticHandler {
 
         // Variable declarada sin inicializar
         val errors =
-            if (variable.value == null) {
+            if (!symbol.initialized) {
                 listOf(SemanticError(identifier.position, "Variable '${identifier.name}' is not initialized"))
             } else {
                 emptyList()
             }
 
         return ExpressionAnalysis(
-            type = variable.type,
+            type = symbol.type,
             errors = errors,
-            knownNumberValue = (variable.value as? NumberValue)?.value,
+            knownNumberValue = symbol.knownNumberValue,
         )
     }
 }

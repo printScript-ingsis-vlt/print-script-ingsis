@@ -3,12 +3,10 @@ package semantic.handlers.statements
 import ast.Stmt
 import ast.VariableDeclaration
 import result.SemanticError
-import runtime.Variable
-import runtime.valuedataclass.NumberValue
-import runtime.valuedataclass.StringValue
 import semantic.SemanticContext
 import semantic.StatementSemanticHandler
 import semantic.expressions.ExpressionSemanticAnalyzer
+import semantic.symbols.SemanticSymbol
 
 class VariableDeclarationSemanticHandler(
     private val expressionAnalyzer: ExpressionSemanticAnalyzer,
@@ -46,16 +44,15 @@ class VariableDeclarationSemanticHandler(
         context: SemanticContext,
     ) {
         val declaration = statement as VariableDeclaration
-        val initialValue =
-            if (declaration.value == null) {
-                null
-            } else if (declaration.type == "number") {
-                NumberValue(0.0)
-            } else {
-                StringValue("")
-            }
-
-        context.environment.declare(declaration.name, Variable(declaration.type, initialValue))
+        val valueAnalysis = declaration.value?.let { expressionAnalyzer.analyze(it, context) }
+        context.symbols.declare(
+            declaration.name,
+            SemanticSymbol(
+                type = declaration.type,
+                initialized = declaration.value != null,
+                knownNumberValue = valueAnalysis?.knownNumberValue,
+            ),
+        )
     }
 
     private companion object {

@@ -7,11 +7,10 @@ import ast.StringLiteral
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import runtime.Variable
-import runtime.valuedataclass.NumberValue
 import semantic.SemanticContext
 import semantic.expressions.ExpressionSemanticAnalyzer
 import semantic.pos
+import semantic.symbols.SemanticSymbol
 
 class ExpressionHandlersTest {
     @Test
@@ -33,7 +32,7 @@ class ExpressionHandlersTest {
     @Test
     fun `analyzes declared identifiers and preserves their known number value`() {
         val context = SemanticContext()
-        context.environment.declare("count", Variable("number", NumberValue(7.0)))
+        context.symbols.declare("count", SemanticSymbol("number", initialized = true, knownNumberValue = 7.0))
 
         val analysis = createAnalyzer().analyze(Identifier("count", pos()), context)
 
@@ -48,7 +47,7 @@ class ExpressionHandlersTest {
         val context = SemanticContext()
 
         val undeclared = analyzer.analyze(Identifier("missing", pos()), context)
-        context.environment.declare("pending", Variable("number", null))
+        context.symbols.declare("pending", SemanticSymbol("number", initialized = false))
         val uninitialized = analyzer.analyze(Identifier("pending", pos()), context)
 
         assertEquals("Variable 'missing' is not declared", undeclared.errors.single().message)
@@ -135,7 +134,7 @@ class ExpressionHandlersTest {
             )
         val division = BinaryExpression(NumberLiteral(10.0, pos()), "/", computedZero, pos())
         val context = SemanticContext()
-        context.environment.declare("zero", Variable("number", NumberValue(0.0)))
+        context.symbols.declare("zero", SemanticSymbol("number", initialized = true, knownNumberValue = 0.0))
         val referencedDivision =
             BinaryExpression(
                 NumberLiteral(1.0, pos()),
