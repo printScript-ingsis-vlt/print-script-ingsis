@@ -28,9 +28,15 @@ class IfElseStatementHandler : StatementHandler {
         }
 
         if (condition.value) {
-            ifStatement.thenBranch.forEach(execute)
+            environment.withScope {
+                ifStatement.thenBranch.forEach(execute)
+            }
         } else {
-            ifStatement.elseBranch?.forEach(execute)
+            ifStatement.elseBranch?.let { branch ->
+                environment.withScope {
+                    branch.forEach(execute)
+                }
+            }
         }
     }
 }

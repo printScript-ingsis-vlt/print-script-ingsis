@@ -15,7 +15,7 @@ class BooleanExpressionHandler : ExpressionHandler {
     override fun evaluate(
         expr: Expr,
         environment: Environment,
-        evaluate: (Expr) -> Value
+        evaluate: (Expr) -> Value,
     ): Value {
         val literal = expr as BooleanLiteral
         return BooleanValue(literal.value)
