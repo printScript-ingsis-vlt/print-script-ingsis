@@ -8,9 +8,11 @@ dependencies {
     // llamo al clikt
     implementation(project(":common-lexer-parser"))
     implementation(project(":common-ast"))
+    implementation(project(":common-lexer-parser"))
     implementation(project(":common-result"))
     implementation(project(":lexer"))
     implementation(project(":parser"))
+    implementation(project(":semantic"))
     implementation(project(":interpreter"))
     implementation(project(":formatter"))
     implementation(project(":linter"))
