@@ -17,9 +17,9 @@ import runtime.valuedataclass.StringValue
 class InterpreterTest {
     private val dummyPos = Position(1, 1)
 
-    private fun createInterpreter(): Pair<Interpreter, StringBuilderOutput> {
+    private fun createInterpreter(): Pair<ConfigurableInterpreter, StringBuilderOutput> {
         val output = StringBuilderOutput()
-        return Pair(Interpreter(output), output)
+        return Pair(ConfigurableInterpreter(output), output)
     }
 
     @Test

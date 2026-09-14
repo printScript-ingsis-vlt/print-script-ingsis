@@ -11,7 +11,7 @@
 El proyecto PrintScript requiere una herramienta de análisis estático de código (**Static Code Analyzer** o **Linter**)
 que permita detectar incumplimientos de estilo, convenciones de nombres y posibles malas prácticas en el código fuente antes de su ejecución.
 
-A diferencia del `Interpreter` (que ejecuta el código) o del `Formatter` (que reescribe el código con formato uniforme), el `Linter` debe:
+A diferencia del `ConfigurableInterpreter` (que ejecuta el código) o del `Formatter` (que reescribe el código con formato uniforme), el `Linter` debe:
 1. Analizar el **AST (`Program`)** producido por el parser sin alterar el código ni detener la ejecución.
 2. Emitir **notificaciones estructuradas** (`LintNotification`) que indiquen la regla infringida, severidad (`WARNING`/`ERROR`), mensaje explicativo y la **posición exacta** (`Position`: línea y columna) del nodo infractor.
 3. Ser **configurable externamente** mediante un archivo JSON o YAML, permitiendo activar/desactivar reglas y personalizar parámetros según los estándares del equipo o proyecto.
@@ -254,7 +254,7 @@ tasks.test {
 ✅ **Modularidad y Extensibilidad:** Fácil incorporación de nuevas reglas en futuras versiones de PrintScript.
 ✅ **Alta Testabilidad:** Reglas testables de forma aislada sin requerir la ejecución de un Lexer o Parser.
 ✅ **Interoperabilidad:** Totalmente integrable con el CLI y reportes automáticos.
-✅ **Consistencia:** Sigue el mismo patrón arquitectónico de `Formatter` y `Interpreter`.
+✅ **Consistencia:** Sigue el mismo patrón arquitectónico de `Formatter` y `CongifurableInterpreter`.
 
 ### Negativas
 ⚠️ Cambios en la jerarquía o estructura del AST requerirán actualizar las reglas que dependen de esos nodos.
