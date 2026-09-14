@@ -14,6 +14,10 @@ import lexer.StreamLexer
 import linter.PrintScriptLinter
 import parser.ConfigurableParser
 import result.Result
+import semantic.SemanticAnalyzer
+import semantic.rules.DeclarationValidator
+import semantic.rules.ExpressionValidator
+import semantic.rules.VariableValidator
 import java.io.File
 
 class MyLangCli : CliktCommand(name = "mylang") {
@@ -93,17 +97,50 @@ private fun CliktCommand.loadProgram(file: File): Program? {
             is Result.Success -> result.value
             is Result.Failure -> {
                 echo("Error léxico: ${result.error.message}", err = true)
-                return null
+                null
             }
         }
 
-    return when (val result = ConfigurableParser().parse(tokens)) {
-        is Result.Success -> result.value
-        is Result.Failure -> {
-            result.error.forEach { error ->
-                echo("Error de sintaxis: ${error.message}", err = true)
+    val program =
+        if (tokens != null) {
+            when (val result = ConfigurableParser().parse(tokens)) {
+                is Result.Success -> result.value
+                is Result.Failure -> {
+                    result.error.forEach { error ->
+                        echo("Error de sintaxis: ${error.message}", err = true)
+                    }
+                    null
+                }
             }
+        } else {
             null
         }
+
+    if (program != null && !validateSemantics(program)) {
+        return null
     }
+
+    return program
+}
+
+private fun CliktCommand.validateSemantics(program: Program): Boolean {
+    val semanticErrors =
+        SemanticAnalyzer(
+            listOf(
+                ExpressionValidator(),
+                DeclarationValidator(),
+                VariableValidator(),
+            ),
+        ).analyze(program)
+
+    if (semanticErrors.isEmpty()) return true
+
+    semanticErrors.forEach { error ->
+        echo(
+            "Error semántico: ${error.position.line}:${error.position.column} - ${error.message}",
+            err = true,
+        )
+    }
+
+    return false
 }
