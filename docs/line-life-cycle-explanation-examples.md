@@ -29,9 +29,10 @@ La arquitectura se organiza en una serie de módulos desacoplados y secuenciales
 ### 2.3. Análisis Semántico (Semantic Analyzer)
 * **Propósito:** Verificar la coherencia contextual, el alcance de las variables y el sistema de tipos estático sobre el AST generado.
 * **Consideraciones de Diseño:**
-    * **Tabla de Símbolos y Ámbitos (Environment):** Se registra y rastrea qué variables han sido declaradas, su tipo y su estado a lo largo del programa.
+    * **Handlers configurables:** `SemanticAnalyzer` selecciona un `StatementSemanticHandler` por statement. Cada handler valida y, solo si no hay errores, actualiza el contexto semántico. Las expresiones se analizan recursivamente mediante `ExpressionSemanticAnalyzer` y sus propios handlers.
+    * **Tabla de símbolos y ámbitos:** `SemanticContext` contiene una `SemanticSymbolTable` local al módulo semantic, separada del `Environment` del interpreter. Registra tipo, inicialización, mutabilidad y, cuando es deducible, un valor numérico conocido. La tabla ya soporta scopes anidados para los futuros bloques `if`.
     * **Chequeo Estático de Tipos:** Garantiza que los valores asignados coincidan con el tipo declarado de la variable y valida las operaciones entre tipos compatibles (por ejemplo, permitir concatenación cuando interviene una cadena de texto o restringir la resta a tipos numéricos).
-    * **Reglas Modulares e Independientes:** Las validaciones de declaraciones, variables y expresiones se dividen en reglas aisladas que facilitan la extensibilidad del lenguaje.
+    * **Diagnósticos de expresiones:** `ExpressionAnalysis` concentra el tipo inferido, los errores y el valor numérico conocido. Esto permite propagar errores de subexpresiones y detectar casos como divisiones por cero sin ejecutar el programa.
 
 ---
 
@@ -69,7 +70,7 @@ println(totalScore);
 
 1. **Lexer:** Emite los tokens: `LET`, `IDENTIFIER("totalScore")`, `COLON`, `IDENTIFIER("number")`, `EQUAL`, `NUMBER_LITERAL("10")`, `PLUS`, `NUMBER_LITERAL("5")`, `SEMICOLON`, `IDENTIFIER("println")`, `LEFT_PAREN`, `IDENTIFIER("totalScore")`, `RIGHT_PAREN`, `SEMICOLON`.
 2. **Parser:** Construye el AST compuesto por un nodo de declaración de variable (`VariableDeclaration`) cuyo valor es una expresión binaria (`BinaryExpression`), seguido de un nodo de impresión (`PrintStatement`).
-3. **Semantic Analyzer:** Verifica que `totalScore` no haya sido declarada previamente, valida que la suma de dos números dé como resultado `number`, y comprueba que `println` haga referencia a una variable existente.
+3. **Semantic Analyzer:** El handler de declaración analiza la suma, infiere `number` y registra `totalScore` como inicializada en la tabla de símbolos. El handler de impresión resuelve el identificador y confirma que existe y puede leerse.
 4. **Linter:** Confirma que el identificador cumple con la convención de estilo configurada y que el argumento de `println` es una variable simple.
 5. **Formatter:** Genera el texto estandarizado respetando las reglas de espaciado.
 6. **Interpreter:** Evalúa la suma (`15.0`), asigna el valor en el entorno y envía `"15.0"` a la salida estándar.
@@ -133,13 +134,24 @@ println(10 + 20);
 
 ---
 
+### Caso 7: Lectura de variable sin inicializar
+```printscript
+let count: number;
+println(count);
+```
+* **Etapa de corte:** **Semantic Analyzer**
+* **Comportamiento:** El handler de declaración registra `count` con tipo `number` e `initialized = false`. Al analizar el argumento de `println`, el handler de identificador encuentra el símbolo pero informa que la variable no está inicializada.
+* **Consideración:** El semantic no inventa un valor como `0`. El valor real solo existe durante la ejecución y pertenece al `Environment` del interpreter.
+
+---
+
 ## 4. Matriz de Responsabilidades
 
 | Etapa | Entrada | Salida | Manejo de Diagnósticos | Consideración Principal |
 | :--- | :--- | :--- | :--- | :--- |
 | **Lexer** | Flujo de caracteres | Lista de Tokens | Errores Léxicos | Lectura en streaming y cálculo de coordenadas de posición. |
 | **Parser** | Lista de Tokens | AST (`Program`) | Errores Sintácticos | Motor declarativo y precedencia de operadores. |
-| **Semantic** | AST (`Program`) | AST validado | Errores Semánticos | Verificación de alcance de variables y consistencia de tipos. |
+| **Semantic** | AST (`Program`) | Diagnósticos semánticos | Errores Semánticos | Handlers configurables; tipos, inicialización, scopes y consistencia de expresiones. |
 | **Linter** | AST (`Program`) | Notificaciones | Advertencias / Errores | Reglas de estilo y buenas prácticas configurables. |
 | **Formatter**| AST (`Program`) | Código formateado | Excepciones de formato | Estandarización idempotente de la presentación del código. |
 | **Interpreter**| AST (`Program`) | Ejecución / Salida | Errores de Runtime | Evaluación en memoria y desacoplamiento de la salida mediante interfaces. |

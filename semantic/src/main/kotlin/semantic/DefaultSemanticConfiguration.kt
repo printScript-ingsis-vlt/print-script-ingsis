@@ -9,7 +9,8 @@ import semantic.handlers.statements.AssignmentSemanticHandler
 import semantic.handlers.statements.PrintStatementSemanticHandler
 import semantic.handlers.statements.VariableDeclarationSemanticHandler
 
-/** Construye la composición de handlers que soporta la versión actual del lenguaje. Cuando se implemente la 1.1 se hara otra version */
+/** Construye la composición de handlers que soporta la versión actual del lenguaje.
+ *  Cuando se implemente la 1.1 se hara otra version */
 object DefaultSemanticConfiguration {
     fun statementHandlers(): List<StatementSemanticHandler> {
         val expressionAnalyzer = expressionAnalyzer()
