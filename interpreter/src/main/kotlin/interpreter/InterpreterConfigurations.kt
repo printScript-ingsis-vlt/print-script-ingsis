@@ -11,7 +11,6 @@ import interpreter.handlers.statements.PrintStatementHandler
 import interpreter.handlers.statements.VariableDeclarationHandler
 
 object InterpreterConfigurations {
-
     val v1_0 =
         InterpreterConfiguration(
             statementHandlers =
