@@ -104,5 +104,4 @@ class BinaryExpressionSemanticHandler : ExpressionSemanticHandler {
             null
         }
     }
-
 }

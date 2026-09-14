@@ -10,7 +10,10 @@ class SemanticSymbolTable {
     private val scopes = mutableListOf(mutableMapOf<String, SemanticSymbol>())
 
     // Registra el simbolo del scope actual (variable de tal nombre es este symbol)
-    fun declare(name: String, symbol: SemanticSymbol) {
+    fun declare(
+        name: String,
+        symbol: SemanticSymbol,
+    ) {
         scopes.last()[name] = symbol
     }
 
@@ -23,7 +26,10 @@ class SemanticSymbolTable {
     }
 
     // actualiza un simbolo ya existente tras un assignment. Busca otra vez de interno a externo
-    fun assign(name: String, knownNumberValue: Double?) {
+    fun assign(
+        name: String,
+        knownNumberValue: Double?,
+    ) {
         for (scope in scopes.asReversed()) {
             val current = scope[name] ?: continue
             scope[name] = current.copy(initialized = true, knownNumberValue = knownNumberValue)

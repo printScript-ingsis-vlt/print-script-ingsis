@@ -11,7 +11,6 @@ import result.SemanticError
  * únicamente cuando no hay errores
  */
 interface StatementSemanticHandler {
-
     // Si el handler sabe analizar un statement en particular
     fun canHandle(statement: Stmt): Boolean
 

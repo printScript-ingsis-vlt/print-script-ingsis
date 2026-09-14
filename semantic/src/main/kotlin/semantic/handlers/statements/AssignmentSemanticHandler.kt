@@ -12,10 +12,10 @@ class AssignmentSemanticHandler(
 ) : StatementSemanticHandler {
     override fun canHandle(statement: Stmt): Boolean = statement is Assignment
 
-    //1 - Busca la variable destino
-    //2 - Analiza la expresión asignada
-    //3 - Verifica que el destino exista
-    //4 - Verifica que el tipo del valor coincida con el tipo de la variable
+    // 1 - Busca la variable destino
+    // 2 - Analiza la expresión asignada
+    // 3 - Verifica que el destino exista
+    // 4 - Verifica que el tipo del valor coincida con el tipo de la variable
     override fun validate(
         statement: Stmt,
         context: SemanticContext,

@@ -6,7 +6,6 @@ import result.SemanticError
  * Resultado inmutable del análisis semántico de una expresión
  */
 data class ExpressionAnalysis(
-
     // Nulo cuando no puede inferirse un tipo
     val type: String?,
     val errors: List<SemanticError>,

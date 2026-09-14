@@ -13,9 +13,9 @@ class VariableDeclarationSemanticHandler(
 ) : StatementSemanticHandler {
     override fun canHandle(statement: Stmt): Boolean = statement is VariableDeclaration
 
-    //1 - Analiza la expresión inicializadora, si existe
-    //2 - Verifica que el tipo declarado sea number o string
-    //3 - Verifica que el tipo inferido del inicializador coincida con el declarado
+    // 1 - Analiza la expresión inicializadora, si existe
+    // 2 - Verifica que el tipo declarado sea number o string
+    // 3 - Verifica que el tipo inferido del inicializador coincida con el declarado
     override fun validate(
         statement: Stmt,
         context: SemanticContext,
