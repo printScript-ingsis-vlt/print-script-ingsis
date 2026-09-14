@@ -19,8 +19,8 @@ subprojects {
                 create<MavenPublication>("gpr") {
                     from(components["java"])
                     groupId = "com.printscript"
-                    artifactId = project.name
-                    version = "1.0.0"
+                    artifactId = project.name.lowercase()
+                    version = project.version.toString()
                 }
             }
 
