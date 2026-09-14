@@ -18,6 +18,6 @@ class StringLiteralSemanticHandler : ExpressionSemanticHandler {
         ExpressionAnalysis(
             type = "string",
             errors = emptyList(),
-            // knowNumberValue queda null, pero aceptable en este contexto, desestructurarlo mas seria demasiada complejidad
+            // knownNumberValue queda null: un string no tiene valor numérico estático.
         )
 }
