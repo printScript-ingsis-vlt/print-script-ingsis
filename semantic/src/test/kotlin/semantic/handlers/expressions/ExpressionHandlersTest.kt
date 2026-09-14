@@ -1,0 +1,136 @@
+package semantic.handlers.expressions
+
+import ast.BinaryExpression
+import ast.Identifier
+import ast.NumberLiteral
+import ast.StringLiteral
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
+import runtime.Variable
+import runtime.valuedataclass.NumberValue
+import semantic.SemanticContext
+import semantic.expressions.ExpressionSemanticAnalyzer
+import semantic.pos
+
+class ExpressionHandlersTest {
+    @Test
+    fun `analyzes number and string literals`() {
+        val analyzer = createAnalyzer()
+        val context = SemanticContext()
+
+        val number = analyzer.analyze(NumberLiteral(42.0, pos()), context)
+        val string = analyzer.analyze(StringLiteral("hello", pos()), context)
+
+        assertEquals("number", number.type)
+        assertEquals(42.0, number.knownNumberValue)
+        assertTrue(number.errors.isEmpty())
+        assertEquals("string", string.type)
+        assertEquals(null, string.knownNumberValue)
+        assertTrue(string.errors.isEmpty())
+    }
+
+    @Test
+    fun `analyzes declared identifiers and preserves their known number value`() {
+        val context = SemanticContext()
+        context.environment.declare("count", Variable("number", NumberValue(7.0)))
+
+        val analysis = createAnalyzer().analyze(Identifier("count", pos()), context)
+
+        assertEquals("number", analysis.type)
+        assertEquals(7.0, analysis.knownNumberValue)
+        assertTrue(analysis.errors.isEmpty())
+    }
+
+    @Test
+    fun `reports undeclared and uninitialized identifiers`() {
+        val analyzer = createAnalyzer()
+        val context = SemanticContext()
+
+        val undeclared = analyzer.analyze(Identifier("missing", pos()), context)
+        context.environment.declare("pending", Variable("number", null))
+        val uninitialized = analyzer.analyze(Identifier("pending", pos()), context)
+
+        assertEquals("Variable 'missing' is not declared", undeclared.errors.single().message)
+        assertEquals("number", uninitialized.type)
+        assertEquals("Variable 'pending' is not initialized", uninitialized.errors.single().message)
+    }
+
+    @Test
+    fun `infers numeric binary expressions and evaluates known values`() {
+        val expression =
+            BinaryExpression(
+                NumberLiteral(2.0, pos()),
+                "*",
+                NumberLiteral(3.0, pos()),
+                pos(),
+            )
+
+        val analysis = createAnalyzer().analyze(expression, SemanticContext())
+
+        assertEquals("number", analysis.type)
+        assertEquals(6.0, analysis.knownNumberValue)
+        assertTrue(analysis.errors.isEmpty())
+    }
+
+    @Test
+    fun `allows string concatenation and rejects other string operations`() {
+        val concatenation =
+            BinaryExpression(
+                StringLiteral("hello", pos()),
+                "+",
+                NumberLiteral(1.0, pos()),
+                pos(),
+            )
+        val subtraction =
+            BinaryExpression(
+                StringLiteral("hello", pos()),
+                "-",
+                NumberLiteral(1.0, pos()),
+                pos(),
+            )
+        val analyzer = createAnalyzer()
+
+        val concatenationAnalysis = analyzer.analyze(concatenation, SemanticContext())
+        val subtractionAnalysis = analyzer.analyze(subtraction, SemanticContext())
+
+        assertEquals("string", concatenationAnalysis.type)
+        assertTrue(concatenationAnalysis.errors.isEmpty())
+        assertEquals("Operator '-' requires operand", subtractionAnalysis.errors.single().message)
+    }
+
+    @Test
+    fun `reports division by zero and unknown operators`() {
+        val division =
+            BinaryExpression(
+                NumberLiteral(10.0, pos()),
+                "/",
+                NumberLiteral(0.0, pos()),
+                pos(),
+            )
+        val unknown =
+            BinaryExpression(
+                NumberLiteral(1.0, pos()),
+                "%",
+                NumberLiteral(1.0, pos()),
+                pos(),
+            )
+        val analyzer = createAnalyzer()
+
+        val divisionAnalysis = analyzer.analyze(division, SemanticContext())
+        val unknownAnalysis = analyzer.analyze(unknown, SemanticContext())
+
+        assertEquals("Division by zero", divisionAnalysis.errors.single().message)
+        assertEquals("Unknown operator '%'", unknownAnalysis.errors.single().message)
+    }
+
+    private fun createAnalyzer(): ExpressionSemanticAnalyzer =
+        ExpressionSemanticAnalyzer(
+            listOf(
+                NumberLiteralSemanticHandler(),
+                StringLiteralSemanticHandler(),
+                IdentifierSemanticHandler(),
+                BinaryExpressionSemanticHandler(),
+            ),
+        )
+}

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import semantic.SemanticContext
+import semantic.pos
 
 class ExpressionSemanticAnalyzerTest {
     private val context = SemanticContext()

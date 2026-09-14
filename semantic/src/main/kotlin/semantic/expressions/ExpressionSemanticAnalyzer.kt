@@ -3,9 +3,7 @@ package semantic.expressions
 import ast.Expr
 import semantic.SemanticContext
 
-/**
- * Selecciona el handler semántico correspondiente y coordina el análisis recursivo de expresiones. Alta configurabilidad
- */
+/** Selecciona el handler semántico y coordina el análisis recursivo de expresiones. */
 class ExpressionSemanticAnalyzer(
     private val handlers: List<ExpressionSemanticHandler>,
 ) {
@@ -32,7 +30,7 @@ class ExpressionSemanticAnalyzer(
                             candidates.joinToString { it::class.simpleName.orEmpty() },
                     )
             }
-
+        // ej: BinaryExpression -> analyzeChild -> Identifier, NumberLiteral
         return handler.analyze(expression, context) { child -> analyze(child, context) }
     }
 }
