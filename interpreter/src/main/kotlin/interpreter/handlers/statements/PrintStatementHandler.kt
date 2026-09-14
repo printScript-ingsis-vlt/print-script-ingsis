@@ -15,7 +15,8 @@ class PrintStatementHandler : StatementHandler {
         stmt: Stmt,
         environment: Environment,
         evaluate: (Expr) -> Value,
-        output: Output,
+        execute: (Stmt) -> Unit,
+        output: Output
     ) {
         val print = stmt as PrintStatement
         val result = evaluate(print.argument)

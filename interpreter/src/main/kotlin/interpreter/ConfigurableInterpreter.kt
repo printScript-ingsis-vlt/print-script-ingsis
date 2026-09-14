@@ -40,7 +40,7 @@ class ConfigurableInterpreter(private val output: Output) {
             statementHandlers.find { it.canHandle(stmt) }
                 ?: error("No handler found for statement: ${stmt::class.simpleName}")
 
-        handler.execute(stmt, environment, ::evaluate, output)
+        handler.execute(stmt, environment, ::evaluate, ::execute,output)
     }
 
     fun evaluate(expr: Expr): Value {
