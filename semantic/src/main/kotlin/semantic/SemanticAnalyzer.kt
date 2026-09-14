@@ -1,68 +1,47 @@
 package semantic
 
-import ast.Assignment
-import ast.Position
-import ast.PrintStatement
 import ast.Program
-import ast.VariableDeclaration
+import ast.Stmt
 import result.SemanticError
-import runtime.Environment
-import runtime.Variable
-import runtime.valuedataclass.NumberValue
-import runtime.valuedataclass.StringValue
 
-// --> Hace todas las validaciones semanticas, construyendo el environment
-class SemanticAnalyzer(private val rules: List<SemanticRule>) {
+/** Orquesta los handlers semánticos y conserva el contexto de un programa completo. */
+class SemanticAnalyzer(
+    private val statementHandlers: List<StatementSemanticHandler> = DefaultSemanticConfiguration.statementHandlers(),
+) {
+    init {
+        require(statementHandlers.isNotEmpty()) {
+            "SemanticAnalyzer requires at least one statement handler"
+        }
+    }
+
     fun analyze(program: Program): List<SemanticError> {
-        val environment = Environment()
+        val context = SemanticContext()
         val errors = mutableListOf<SemanticError>()
-        for (stmt in program.statements) {
-            // --> Ejecuta todas las reglas sobre el statement actual
-            errors.addAll(rules.flatMap { it.check(stmt, environment) })
-            // --> Si no hubo errores en esta sentencia, actualiza el Environment
-            if (!hasError(stmt.position, errors)) {
-                when (stmt) {
-                    is VariableDeclaration -> {
-                        vdValueDeclaration(stmt, environment)
-                    }
-                    is Assignment -> {
-                        assiValueDeclaration(environment, stmt)
-                    }
-                    is PrintStatement -> {
-                        // --> No modifica el environment
-                    }
-                }
+        for (statement in program.statements) {
+            val handler = handlerFor(statement)
+            val statementErrors = handler.validate(statement, context)
+
+            errors.addAll(statementErrors)
+            if (statementErrors.isEmpty()) {
+                handler.updateEnvironment(statement, context)
             }
         }
+
         return errors
     }
 
-    private fun assiValueDeclaration(
-        environment: Environment,
-        stmt: Assignment,
-    ) {
-        val variable = environment.lookup(stmt.name)
-        if (variable != null) {
-            val assignedValue = if (variable.type == "number") NumberValue(0.0) else StringValue("")
-            environment.assign(stmt.name, assignedValue)
+    private fun handlerFor(statement: Stmt): StatementSemanticHandler {
+        val candidates = statementHandlers.filter { it.canHandle(statement) }
+
+        return when (candidates.size) {
+            0 -> error("No semantic statement handler found for: ${statement::class.simpleName}")
+            1 -> candidates.single()
+            else ->
+                error(
+                    "Ambiguous semantic statement handlers for " +
+                        "${statement::class.simpleName}: " +
+                        candidates.joinToString { it::class.simpleName.orEmpty() },
+                )
         }
     }
-
-    private fun vdValueDeclaration(
-        stmt: VariableDeclaration,
-        environment: Environment,
-    ) {
-        val initialValue =
-            if (stmt.value != null) {
-                if (stmt.type == "number") NumberValue(0.0) else StringValue("")
-            } else {
-                null
-            }
-        environment.declare(stmt.name, Variable(stmt.type, initialValue))
-    }
-
-    private fun hasError(
-        position: Position,
-        errors: List<SemanticError>,
-    ): Boolean = errors.any { it.position == position }
 }

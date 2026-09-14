@@ -1,0 +1,65 @@
+@startuml
+title Semantic Analyzer - handlers, expresiones y tabla de simbolos
+
+skinparam monochrome true
+skinparam shadowing false
+autonumber
+
+actor Usuario
+participant "CLI / consumidor" as Consumer
+participant "SemanticAnalyzer" as Analyzer
+participant "Statement handlers" as StatementHandlers
+participant "ExpressionSemanticAnalyzer" as ExpressionAnalyzer
+participant "Expression handlers" as ExpressionHandlers
+participant "SemanticContext" as Context
+participant "SemanticSymbolTable" as Symbols
+
+Usuario -> Consumer : solicita validar Program
+Consumer -> Analyzer : analyze(program)
+activate Analyzer
+Analyzer -> Context : crear contexto
+Context -> Symbols : crear scope global
+
+loop por cada statement
+  Analyzer -> StatementHandlers : canHandle(statement)
+  StatementHandlers --> Analyzer : exactamente un handler
+  Analyzer -> StatementHandlers : validate(statement, context)
+
+  alt Declaración o asignación con expresión
+    StatementHandlers -> ExpressionAnalyzer : analyze(expression, context)
+    ExpressionAnalyzer -> ExpressionHandlers : canHandle(expression)
+    ExpressionHandlers --> ExpressionAnalyzer : handler concreto
+
+    alt Expresión binaria
+      ExpressionHandlers -> ExpressionAnalyzer : analyzeChild(left / right)
+      ExpressionAnalyzer -> ExpressionHandlers : analiza hijos recursivamente
+      ExpressionHandlers --> ExpressionAnalyzer : ExpressionAnalysis
+    else Identificador
+      ExpressionHandlers -> Symbols : lookup(nombre)
+      Symbols --> ExpressionHandlers : simbolo / no encontrado
+    end
+
+    ExpressionAnalyzer --> StatementHandlers : tipo, errores, valor numérico conocido
+  end
+
+  alt La validación no produce errores
+    Analyzer -> StatementHandlers : updateEnvironment(statement, context)
+    alt Declaración
+      StatementHandlers -> Symbols : declare(nombre, simbolo)
+    else Asignación
+      StatementHandlers -> Symbols : assign(nombre, valor conocido)
+    else PrintStatement
+      StatementHandlers -> StatementHandlers : sin cambio de estado
+    end
+  else Hay errores semánticos
+    StatementHandlers --> Analyzer : List<SemanticError>
+    Analyzer -> Analyzer : acumula errores; no actualiza símbolos
+  end
+end
+
+Analyzer --> Consumer : List<SemanticError>
+deactivate Analyzer
+
+note right of Symbols : Informacion estatica: tipo, inicializacion,\nmutabilidad y valor numerico conocido.\nNo contiene valores runtime.
+note right of Context : Los futuros handlers de if usaran\nenterScope() y exitScope() sobre la tabla.
+@enduml
