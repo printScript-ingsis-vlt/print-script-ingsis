@@ -15,9 +15,6 @@ import linter.PrintScriptLinter
 import parser.ConfigurableParser
 import result.Result
 import semantic.SemanticAnalyzer
-import semantic.rules.DeclarationValidator
-import semantic.rules.ExpressionValidator
-import semantic.rules.VariableValidator
 import java.io.File
 
 class MyLangCli : CliktCommand(name = "mylang") {
@@ -124,14 +121,7 @@ private fun CliktCommand.loadProgram(file: File): Program? {
 }
 
 private fun CliktCommand.validateSemantics(program: Program): Boolean {
-    val semanticErrors =
-        SemanticAnalyzer(
-            listOf(
-                ExpressionValidator(),
-                DeclarationValidator(),
-                VariableValidator(),
-            ),
-        ).analyze(program)
+    val semanticErrors = SemanticAnalyzer().analyze(program)
 
     if (semanticErrors.isEmpty()) return true
 
