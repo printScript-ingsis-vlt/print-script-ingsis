@@ -9,6 +9,8 @@ data class LintConfig(
     val identifierFormat: IdentifierFormat = IdentifierFormat.CAMEL_CASE,
     // Default: do not validate println arguments.
     val printlnArgumentCheck: Boolean = false,
+    // Default: do not validate readInput arguments.
+    val readInputArgumentCheck: Boolean = false,
 )
 
 enum class IdentifierFormat { CAMEL_CASE, SNAKE_CASE }
