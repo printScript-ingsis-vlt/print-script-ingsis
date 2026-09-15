@@ -60,7 +60,7 @@ data class BooleanLiteral(
 ) : Expr
 
 data class ReadInputExpression(
-    val prompt: Expr?,
+    val prompt: Expr,
     override val position: Position,
 ) : Expr
 
