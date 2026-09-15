@@ -24,6 +24,9 @@ La arquitectura se organiza en una serie de módulos desacoplados y secuenciales
     * **Construcción desacoplada del AST:** Cada regla gramatical exitosa mapea sus tokens a nodos del AST fuertemente tipados (`Program`, `VariableDeclaration`, `PrintStatement`, `BinaryExpression`, etc.).
     * **Precedencia de Operadores:** Las expresiones se estructuran jerárquicamente (`primary → term → expression`) para garantizar que operaciones de mayor precedencia (multiplicación y división) se evalúen antes que las de menor precedencia (suma y resta), soportando además paréntesis para alterar ese orden.
     * **Configuración por lista de reglas:** El parser recibe una `GrammarConfiguration` con la lista de sentencias que acepta (declaraciones, asignaciones, `println`, ...), en vez de tener una gramática fija. Sumar una construcción nueva del lenguaje es agregar una regla a esa lista, sin modificar las reglas existentes ni el motor de combinadores.
+    * **Extensión por parámetro, no por versión hardcodeada:** `ExpressionRule` acepta `extraPrimaries` (alternativas nuevas para `primary`, ej. literales `boolean` o `readInput`/`readEnv`) y `DeclarationRule` acepta `extraTypeTokens` (tokens de tipo adicionales, ej. `BOOLEAN`). `GrammarConfigurations.v1_0` no pasa ninguno de los dos, así que queda intacta; `v1_1` sí. Es el mismo mecanismo aplicado dos veces, no dos soluciones distintas.
+    * **Bloques recursivos:** `IfStatementRule` necesita poder parsear cualquier statement dentro de sus llaves, incluido otro `if` anidado, antes de que esa lista de statements termine de construirse. Se resuelve con `Ref` (referencia perezosa) sobre un `lateinit var`, el mismo combinador que ya resolvía los paréntesis en expresiones.
+    * **`const` reutiliza el nodo de `let`:** No existe un nodo `ConstDeclaration` separado — `ConstDeclarationRule` exige inicializador obligatorio y arma un `VariableDeclaration(mutable = false)`, para que semantic e interpreter no dupliquen un handler completo por una sola regla de negocio.
 
 ---
 
@@ -48,7 +51,10 @@ La arquitectura se organiza en una serie de módulos desacoplados y secuenciales
 ### 2.5. Formateador (Formatter)
 * **Propósito:** Reconstruir el código fuente a partir del AST siguiendo un conjunto de reglas estéticas y de espaciado estandarizadas.
 * **Consideraciones de Diseño:**
-    * **Reglas de Estilo Parametrizables:** Permite configurar de forma personalizada el espaciado alrededor de operadores, símbolos de asignación, dos puntos y saltos de línea entre bloques de sentencias.
+    * **Reglas de Estilo Parametrizables:** `FormattingRules` permite configurar el espaciado alrededor de operadores, símbolos de asignación y dos puntos; los saltos de línea antes de `println`; y `indentationSpaces`, que usa `4` espacios por defecto dentro de cada bloque.
+    * **Bloques y anidamiento:** El formatter recibe listas de sentencias tanto para el programa como para las ramas de un `if`/`else`. Formatea recursivamente cada lista con un nivel de indentación mayor, deja la llave de apertura en la misma línea del `if` y alinea las llaves de cierre con ese `if`.
+    * **Nodos de PrintScript 1.1:** Usa `VariableDeclaration.mutable` para emitir `let` o `const`, y formatea `BooleanLiteral`, `ReadInputExpression` y `ReadEnvExpression` de manera recursiva. Por ello, estas lecturas pueden aparecer como inicializador, argumento de `println` u operando de una expresión binaria sin reglas especiales para cada contexto.
+    * **Responsabilidad acotada:** El formatter solo transforma el AST en texto. No valida tipos, no consulta variables de entorno y no lee la entrada estándar; esas responsabilidades pertenecen respectivamente al semantic y al interpreter.
     * **Idempotencia:** Formatear un código ya formateado produce exactamente el mismo resultado.
 
 ---
@@ -146,7 +152,34 @@ println(count);
 
 ---
 
-### Caso 8: Validación contextual de `readEnv`
+### Caso 8: `if`/`else` con bloque anidado (1.1+)
+```printscript
+let flag: boolean = true;
+if (flag) {
+    if (flag) {
+        println("anidado");
+    }
+} else {
+    println("nunca");
+}
+```
+* **Etapa:** **Parser**
+* **Comportamiento:** `IfStatementRule` parsea la condición como una expresión cualquiera (acá un identificador `boolean`), y cada bloque `{ }` con el mismo dispatcher de statements que usa el nivel superior del programa — por eso puede reconocer el `if` anidado sin ninguna regla especial para ese caso.
+* **Consideración:** El parser no exige que la condición sea una variable `boolean` en particular — eso lo valida el Semantic Analyzer más adelante. El parser solo garantiza la forma sintáctica: paréntesis, llaves, y que `else` no admita un `if` a continuación (`else if` no es una construcción soportada).
+
+---
+
+### Caso 9: `const` sin inicializador
+```printscript
+const limit: number;
+```
+* **Etapa de corte:** **Parser**
+* **Comportamiento:** A diferencia de `let`, `ConstDeclarationRule` no trata el inicializador como opcional. Al no encontrar el token `=` donde la regla lo exige, ninguna regla de declaración coincide y el parser reporta un error de sintaxis.
+* **Consideración:** Esta restricción es puramente sintáctica — un `const` sin valor no tiene sentido conceptual, así que se rechaza antes de llegar a semantic.
+
+---
+
+### Caso 10: Validación contextual de `readEnv`
 ```printscript
 let port: number = readEnv("PORT");
 ```
@@ -156,14 +189,22 @@ let port: number = readEnv("PORT");
 
 ---
 
+### Caso 11: `readInput` anidado como argumento de otro `readInput`/`readEnv`
+```printscript
+let apiKey: string = readInput(readEnv("PROMPT_LABEL"));
+```
+* **Etapa:** **Parser**
+* **Comportamiento:** El argumento de `readInput`/`readEnv` es una `expression` completa, igual que el argumento de `println` — no está restringido a un literal o identificador a nivel de gramática. El parser construye `ReadInputExpression(prompt = ReadEnvExpression(...))` sin problema.
+* **Consideración:** La restricción de "`readInput` solo admite un identificador o un literal" es una regla del **linter**, configurable (puede estar prendida o apagada). Si el parser la aplicara de forma fija, esa regla no podría desactivarse nunca — por diseño, el parser es permisivo acá y la validación más estricta se resuelve más arriba en el pipeline.
+
 ## 4. Matriz de Responsabilidades
 
 | Etapa | Entrada | Salida | Manejo de Diagnósticos | Consideración Principal |
 | :--- | :--- | :--- | :--- | :--- |
 | **Lexer** | Flujo de caracteres | Lista de Tokens | Errores Léxicos | Lectura en streaming y cálculo de coordenadas de posición. |
-| **Parser** | Lista de Tokens | AST (`Program`) | Errores Sintácticos | Motor declarativo y precedencia de operadores. |
+| **Parser** | Lista de Tokens + `GrammarConfiguration` | AST (`Program`) | Errores Sintácticos | Reglas componibles por versión; precedencia de operadores y bloques recursivos vía `Ref`. |
 | **Semantic** | AST (`Program`) + `SemanticConfiguration` | Diagnósticos semánticos | Errores Semánticos | Handlers configurables por versión; tipos, inicialización, mutabilidad, scopes y análisis contextual de expresiones. |
 | **Linter** | AST (`Program`) | Notificaciones | Advertencias / Errores | Reglas de estilo y buenas prácticas configurables. |
-| **Formatter**| AST (`Program`) | Código formateado | Excepciones de formato | Estandarización idempotente de la presentación del código. |
+| **Formatter**| AST (`Program`) | Código formateado | Excepciones de formato | Estandarización idempotente; indentación configurable de bloques y representación de nodos de 1.1. |
 | **Interpreter**| AST (`Program`) | Ejecución / Salida | Errores de Runtime | Evaluación en memoria y desacoplamiento de la salida mediante interfaces. |
 ```

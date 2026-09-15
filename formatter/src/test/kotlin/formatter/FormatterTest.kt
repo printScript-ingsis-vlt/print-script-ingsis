@@ -2,13 +2,18 @@ package formatter
 
 import ast.Assignment
 import ast.BinaryExpression
+import ast.BooleanLiteral
 import ast.Identifier
+import ast.IfStatement
 import ast.NumberLiteral
 import ast.Position
 import ast.PrintStatement
 import ast.Program
+import ast.ReadEnvExpression
+import ast.ReadInputExpression
 import ast.StringLiteral
 import ast.VariableDeclaration
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -46,6 +51,22 @@ class FormatterTest {
         val result = formatter.format(program)
 
         assertTrue(result.contains("let name : string;"))
+    }
+
+    @Test
+    fun `format constant declaration`() {
+        val stmt =
+            VariableDeclaration(
+                name = "port",
+                type = "number",
+                value = NumberLiteral(8080.0, Position(1, 1)),
+                position = Position(1, 1),
+                mutable = false,
+            )
+
+        val result = formatter.format(Program(Position(1, 1), listOf(stmt)))
+
+        assertEquals("const port : number = 8080.0;", result)
     }
 
     @Test
@@ -97,6 +118,52 @@ class FormatterTest {
         val result = formatter.format(program)
 
         assertTrue(result.contains("println(x);"))
+    }
+
+    @Test
+    fun `format boolean literal`() {
+        val stmt = PrintStatement(BooleanLiteral(true, Position(1, 1)), Position(1, 1))
+        val program = Program(Position(1, 1), listOf(stmt))
+
+        val result = formatter.format(program)
+
+        assertEquals("println(true);", result)
+    }
+
+    @Test
+    fun `format readInput expression`() {
+        val expression = ReadInputExpression(StringLiteral("Name", Position(1, 1)), Position(1, 1))
+        val statement = PrintStatement(expression, Position(1, 1))
+
+        val result = formatter.format(Program(Position(1, 1), listOf(statement)))
+
+        assertEquals("println(readInput(\"Name\"));", result)
+    }
+
+    @Test
+    fun `format readEnv expression`() {
+        val expression = ReadEnvExpression(Identifier("variableName", Position(1, 1)), Position(1, 1))
+        val statement = PrintStatement(expression, Position(1, 1))
+
+        val result = formatter.format(Program(Position(1, 1), listOf(statement)))
+
+        assertEquals("println(readEnv(variableName));", result)
+    }
+
+    @Test
+    fun `format readInput inside a binary expression`() {
+        val expression =
+            BinaryExpression(
+                left = StringLiteral("Name: ", Position(1, 1)),
+                operator = "+",
+                right = ReadInputExpression(StringLiteral("Enter name", Position(1, 1)), Position(1, 1)),
+                position = Position(1, 1),
+            )
+        val statement = PrintStatement(expression, Position(1, 1))
+
+        val result = formatter.format(Program(Position(1, 1), listOf(statement)))
+
+        assertEquals("println(\"Name: \" + readInput(\"Enter name\"));", result)
     }
 
     @Test
@@ -179,5 +246,135 @@ class FormatterTest {
 
         assertTrue(result.contains("x=5.0;"))
         assertFalse(result.contains("x = 5.0;"))
+    }
+
+    @Test
+    fun `format if block with default indentation`() {
+        val statement =
+            IfStatement(
+                condition = Identifier("enabled", Position(1, 1)),
+                thenBranch = listOf(PrintStatement(StringLiteral("on", Position(1, 1)), Position(1, 1))),
+                elseBranch = null,
+                position = Position(1, 1),
+            )
+
+        val result = formatter.format(Program(Position(1, 1), listOf(statement)))
+
+        assertEquals(
+            """
+            if (enabled) {
+                println("on");
+            }
+            """.trimIndent(),
+            result,
+        )
+    }
+
+    @Test
+    fun `format constant with readEnv inside an if block`() {
+        val declaration =
+            VariableDeclaration(
+                name = "port",
+                type = "number",
+                value = ReadEnvExpression(StringLiteral("PORT", Position(1, 1)), Position(1, 1)),
+                position = Position(1, 1),
+                mutable = false,
+            )
+        val statement =
+            IfStatement(
+                condition = Identifier("enabled", Position(1, 1)),
+                thenBranch = listOf(declaration),
+                elseBranch = null,
+                position = Position(1, 1),
+            )
+
+        val result = formatter.format(Program(Position(1, 1), listOf(statement)))
+
+        assertEquals(
+            """
+            if (enabled) {
+                const port : number = readEnv("PORT");
+            }
+            """.trimIndent(),
+            result,
+        )
+    }
+
+    @Test
+    fun `format if else blocks`() {
+        val statement =
+            IfStatement(
+                condition = Identifier("enabled", Position(1, 1)),
+                thenBranch = listOf(PrintStatement(StringLiteral("on", Position(1, 1)), Position(1, 1))),
+                elseBranch = listOf(PrintStatement(StringLiteral("off", Position(1, 1)), Position(1, 1))),
+                position = Position(1, 1),
+            )
+
+        val result = formatter.format(Program(Position(1, 1), listOf(statement)))
+
+        assertEquals(
+            """
+            if (enabled) {
+                println("on");
+            } else {
+                println("off");
+            }
+            """.trimIndent(),
+            result,
+        )
+    }
+
+    @Test
+    fun `format nested if blocks`() {
+        val nested =
+            IfStatement(
+                condition = Identifier("secondary", Position(1, 1)),
+                thenBranch = listOf(PrintStatement(StringLiteral("nested", Position(1, 1)), Position(1, 1))),
+                elseBranch = null,
+                position = Position(1, 1),
+            )
+        val statement =
+            IfStatement(
+                condition = Identifier("primary", Position(1, 1)),
+                thenBranch = listOf(nested),
+                elseBranch = null,
+                position = Position(1, 1),
+            )
+
+        val result = formatter.format(Program(Position(1, 1), listOf(statement)))
+
+        assertEquals(
+            """
+            if (primary) {
+                if (secondary) {
+                    println("nested");
+                }
+            }
+            """.trimIndent(),
+            result,
+        )
+    }
+
+    @Test
+    fun `format if block with configured indentation`() {
+        val formatter = PrintScriptFormatter(FormattingRules(indentationSpaces = 2))
+        val statement =
+            IfStatement(
+                condition = Identifier("enabled", Position(1, 1)),
+                thenBranch = listOf(PrintStatement(StringLiteral("on", Position(1, 1)), Position(1, 1))),
+                elseBranch = null,
+                position = Position(1, 1),
+            )
+
+        val result = formatter.format(Program(Position(1, 1), listOf(statement)))
+
+        assertEquals(
+            """
+            if (enabled) {
+              println("on");
+            }
+            """.trimIndent(),
+            result,
+        )
     }
 }
