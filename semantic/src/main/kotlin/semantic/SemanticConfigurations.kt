@@ -1,5 +1,7 @@
 package semantic
 
+import ast.PrintScriptVersion
+import ast.VersionConfigurationProvider
 import semantic.expressions.ExpressionSemanticHandler
 import semantic.handlers.expressions.BinaryExpressionSemanticHandler
 import semantic.handlers.expressions.BooleanLiteralSemanticHandler
@@ -20,7 +22,7 @@ data class SemanticConfiguration(
 )
 
 /** Configuraciones de handlers semánticos disponibles por versión de PrintScript. */
-object SemanticConfigurations {
+object SemanticConfigurations : VersionConfigurationProvider<SemanticConfiguration> {
     private val v1_0SupportedTypes = setOf("number", "string")
     private val v1_1SupportedTypes = setOf("number", "string", "boolean")
 
@@ -69,4 +71,10 @@ object SemanticConfigurations {
                         ReadEnvExpressionSemanticHandler(v1_1SupportedTypes),
                     ),
             )
+
+    override fun getConfiguration(version: PrintScriptVersion): SemanticConfiguration =
+        when (version) {
+            PrintScriptVersion.V1_0 -> v1_0
+            PrintScriptVersion.V1_1 -> v1_1
+        }
 }

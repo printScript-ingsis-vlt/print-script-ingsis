@@ -1,8 +1,10 @@
 package lexer
 
+import ast.PrintScriptVersion
+import ast.VersionConfigurationProvider
 import token.TokenType
 
-object LexerConfigurations {
+object LexerConfigurations : VersionConfigurationProvider<LexerConfiguration> {
     // let es la unica keyword que esta presente en todas las versiones
     private val baseKeywords =
         mapOf(
@@ -51,5 +53,11 @@ object LexerConfigurations {
                     ),
         )
 
-    val default = v1_0
+    val default = v1_1
+
+    override fun getConfiguration(version: PrintScriptVersion): LexerConfiguration =
+        when (version) {
+            PrintScriptVersion.V1_0 -> v1_0
+            PrintScriptVersion.V1_1 -> v1_1
+        }
 }

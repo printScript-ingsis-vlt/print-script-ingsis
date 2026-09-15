@@ -8,9 +8,9 @@ import runtime.valuedataclass.Value
 
 class ConfigurableInterpreter(
     private val output: Output,
+    configuration: InterpreterConfiguration = InterpreterConfigurations.default,
     private val inputProvider: InputProvider = StdinInputProvider(),
     private val envProvider: EnvProvider = SystemEnvProvider(),
-    configuration: InterpreterConfiguration = InterpreterConfigurations.default,
 ) {
     private val environment = Environment()
 

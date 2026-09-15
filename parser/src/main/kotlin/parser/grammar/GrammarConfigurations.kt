@@ -1,10 +1,12 @@
 package parser.grammar
 
+import ast.PrintScriptVersion
+import ast.VersionConfigurationProvider
 import parser.engine.Choice
 import parser.engine.Rule
 import parser.engine.ref
 
-object GrammarConfigurations {
+object GrammarConfigurations : VersionConfigurationProvider<GrammarConfiguration> {
     private val expression = ExpressionRule().expression
     private val expressionV1_1 = buildExpressionV11()
 
@@ -56,5 +58,11 @@ object GrammarConfigurations {
         return GrammarConfiguration(statementRules)
     }
 
-    val default = v1_0
+    val default = v1_1
+
+    override fun getConfiguration(version: PrintScriptVersion): GrammarConfiguration =
+        when (version) {
+            PrintScriptVersion.V1_0 -> v1_0
+            PrintScriptVersion.V1_1 -> v1_1
+        }
 }

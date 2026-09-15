@@ -1,8 +1,10 @@
 package cli.commands
 
+import ast.PrintScriptVersion
 import ast.Program
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
+import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
@@ -10,9 +12,12 @@ import formatter.FormattingConfigLoader
 import formatter.PrintScriptFormatter
 import interpreter.ConfigurableInterpreter
 import interpreter.ConsoleOutput
+import interpreter.InterpreterConfigurations
+import lexer.LexerConfigurations
 import lexer.StreamLexer
 import linter.PrintScriptLinter
 import parser.ConfigurableParser
+import parser.grammar.GrammarConfigurations
 import result.Result
 import semantic.SemanticAnalyzer
 import semantic.SemanticConfigurations
@@ -24,11 +29,29 @@ class MyLangCli : CliktCommand(name = "mylang") {
 
 class LexCommand : CliktCommand(name = "lex") {
     private val file by argument().file(mustExist = true)
+    private val versionStr by option("-v", "--version", "--lang-version", help = "Versión del lenguaje (1.0 o 1.1)")
+        .default("1.1")
 
     override fun run() {
-        when (val result = file.bufferedReader().use { StreamLexer.tokenize(it) }) {
-            is Result.Success -> result.value.forEach(::println)
-            is Result.Failure -> echo("Error léxico: ${result.error.message}", err = true)
+        val version = PrintScriptVersion.fromString(versionStr)
+        val lexerConfig = LexerConfigurations.getConfiguration(version)
+
+        val tokens =
+            when (
+                val result =
+                    file.bufferedReader().use { reader ->
+                        StreamLexer(reader, lexerConfig).tokenize()
+                    }
+            ) {
+                is Result.Success -> result.value
+                is Result.Failure -> {
+                    echo("Error léxico: ${result.error.message}", err = true)
+                    null
+                }
+            }
+
+        if (tokens != null) {
+            tokens.forEach(::println)
         }
     }
 }
@@ -38,10 +61,14 @@ class InterpretCommand : CliktCommand(
     help = "Interpreta el archivo",
 ) {
     private val file by argument().file(mustExist = true)
+    private val versionStr by option("-v", "--version", "--lang-version", help = "Versión del lenguaje (1.0 o 1.1)")
+        .default("1.1")
 
     override fun run() {
-        val program = loadProgram(file) ?: return
-        ConfigurableInterpreter(ConsoleOutput).run(program)
+        val version = PrintScriptVersion.fromString(versionStr)
+        val program = loadProgram(file, version) ?: return
+        val interpreterConfig = InterpreterConfigurations.getConfiguration(version)
+        ConfigurableInterpreter(ConsoleOutput, interpreterConfig).run(program)
     }
 }
 
@@ -53,7 +80,8 @@ class FormatCommand : CliktCommand(
     private val write by option("-w", "--write", help = "Sobreescribe el archivo").flag()
 
     override fun run() {
-        val program = loadProgram(file) ?: return
+        // Carga el programa con la versión por defecto de PrintScript
+        val program = loadProgram(file, PrintScriptVersion.DEFAULT) ?: return
         val formatted = PrintScriptFormatter(FormattingConfigLoader.loadDefault()).format(program)
 
         if (write) {
@@ -72,7 +100,8 @@ class LintCommand : CliktCommand(
     private val file by argument().file(mustExist = true)
 
     override fun run() {
-        val program = loadProgram(file) ?: return
+        // Carga el programa con la versión por defecto de PrintScript
+        val program = loadProgram(file, PrintScriptVersion.DEFAULT) ?: return
         val notifications = PrintScriptLinter().lint(program)
 
         if (notifications.isEmpty()) {
@@ -89,9 +118,20 @@ class LintCommand : CliktCommand(
     }
 }
 
-private fun CliktCommand.loadProgram(file: File): Program? {
+private fun CliktCommand.loadProgram(
+    file: File,
+    version: PrintScriptVersion,
+): Program? {
+    val lexerConfig = LexerConfigurations.getConfiguration(version)
+
+    // 2. Instanciar el Lexer pasándole la configuración seleccionada
     val tokens =
-        when (val result = file.bufferedReader().use { StreamLexer.tokenize(it) }) {
+        when (
+            val result =
+                file.bufferedReader().use { reader ->
+                    StreamLexer(reader, lexerConfig).tokenize()
+                }
+        ) {
             is Result.Success -> result.value
             is Result.Failure -> {
                 echo("Error léxico: ${result.error.message}", err = true)
@@ -99,9 +139,10 @@ private fun CliktCommand.loadProgram(file: File): Program? {
             }
         }
 
+    val parserConfig = GrammarConfigurations.getConfiguration(version)
     val program =
         if (tokens != null) {
-            when (val result = ConfigurableParser().parse(tokens)) {
+            when (val result = ConfigurableParser(parserConfig).parse(tokens)) {
                 is Result.Success -> result.value
                 is Result.Failure -> {
                     result.error.forEach { error ->
@@ -114,15 +155,19 @@ private fun CliktCommand.loadProgram(file: File): Program? {
             null
         }
 
-    if (program != null && !validateSemantics(program)) {
+    if (program != null && !validateSemantics(program, version)) {
         return null
     }
 
     return program
 }
 
-private fun CliktCommand.validateSemantics(program: Program): Boolean {
-    val semanticErrors = SemanticAnalyzer(SemanticConfigurations.v1_0).analyze(program)
+private fun CliktCommand.validateSemantics(
+    program: Program,
+    version: PrintScriptVersion,
+): Boolean {
+    val semanticConfig = SemanticConfigurations.getConfiguration(version)
+    val semanticErrors = SemanticAnalyzer(semanticConfig).analyze(program)
 
     if (semanticErrors.isEmpty()) return true
 

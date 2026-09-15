@@ -34,8 +34,8 @@ class GrammarConfigurationsTest {
     }
 
     @Test
-    fun `v1_0 default es v1_0`() {
-        assertTrue(GrammarConfigurations.default === GrammarConfigurations.v1_0)
+    fun `v1_1 default es v1_1`() {
+        assertTrue(GrammarConfigurations.default === GrammarConfigurations.v1_1)
     }
 
     @Test
