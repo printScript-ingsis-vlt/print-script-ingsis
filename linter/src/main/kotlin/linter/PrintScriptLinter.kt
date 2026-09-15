@@ -5,6 +5,7 @@ import linter.config.LintConfig
 import linter.dataclass.LintNotification
 import linter.rules.IdentifierFormatRule
 import linter.rules.PrintlnArgumentRule
+import linter.rules.ReadInputArgumentRule
 
 /**
  * Clase encargada de recibir la config,
@@ -25,6 +26,10 @@ class PrintScriptLinter(private val config: LintConfig = LintConfig()) : Linter 
         // --> Solo se agrega la regla de println si está habilitada en la config
         if (config.printlnArgumentCheck) {
             activeRules.add(PrintlnArgumentRule())
+        }
+
+        if (config.readInputArgumentCheck) {
+            activeRules.add(ReadInputArgumentRule())
         }
 
         return activeRules
