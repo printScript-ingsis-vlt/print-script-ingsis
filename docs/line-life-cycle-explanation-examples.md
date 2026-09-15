@@ -51,7 +51,10 @@ La arquitectura se organiza en una serie de módulos desacoplados y secuenciales
 ### 2.5. Formateador (Formatter)
 * **Propósito:** Reconstruir el código fuente a partir del AST siguiendo un conjunto de reglas estéticas y de espaciado estandarizadas.
 * **Consideraciones de Diseño:**
-    * **Reglas de Estilo Parametrizables:** Permite configurar de forma personalizada el espaciado alrededor de operadores, símbolos de asignación, dos puntos y saltos de línea entre bloques de sentencias.
+    * **Reglas de Estilo Parametrizables:** `FormattingRules` permite configurar el espaciado alrededor de operadores, símbolos de asignación y dos puntos; los saltos de línea antes de `println`; y `indentationSpaces`, que usa `4` espacios por defecto dentro de cada bloque.
+    * **Bloques y anidamiento:** El formatter recibe listas de sentencias tanto para el programa como para las ramas de un `if`/`else`. Formatea recursivamente cada lista con un nivel de indentación mayor, deja la llave de apertura en la misma línea del `if` y alinea las llaves de cierre con ese `if`.
+    * **Nodos de PrintScript 1.1:** Usa `VariableDeclaration.mutable` para emitir `let` o `const`, y formatea `BooleanLiteral`, `ReadInputExpression` y `ReadEnvExpression` de manera recursiva. Por ello, estas lecturas pueden aparecer como inicializador, argumento de `println` u operando de una expresión binaria sin reglas especiales para cada contexto.
+    * **Responsabilidad acotada:** El formatter solo transforma el AST en texto. No valida tipos, no consulta variables de entorno y no lee la entrada estándar; esas responsabilidades pertenecen respectivamente al semantic y al interpreter.
     * **Idempotencia:** Formatear un código ya formateado produce exactamente el mismo resultado.
 
 ---
@@ -194,8 +197,6 @@ let apiKey: string = readInput(readEnv("PROMPT_LABEL"));
 * **Comportamiento:** El argumento de `readInput`/`readEnv` es una `expression` completa, igual que el argumento de `println` — no está restringido a un literal o identificador a nivel de gramática. El parser construye `ReadInputExpression(prompt = ReadEnvExpression(...))` sin problema.
 * **Consideración:** La restricción de "`readInput` solo admite un identificador o un literal" es una regla del **linter**, configurable (puede estar prendida o apagada). Si el parser la aplicara de forma fija, esa regla no podría desactivarse nunca — por diseño, el parser es permisivo acá y la validación más estricta se resuelve más arriba en el pipeline.
 
----
-
 ## 4. Matriz de Responsabilidades
 
 | Etapa | Entrada | Salida | Manejo de Diagnósticos | Consideración Principal |
@@ -204,6 +205,6 @@ let apiKey: string = readInput(readEnv("PROMPT_LABEL"));
 | **Parser** | Lista de Tokens + `GrammarConfiguration` | AST (`Program`) | Errores Sintácticos | Reglas componibles por versión; precedencia de operadores y bloques recursivos vía `Ref`. |
 | **Semantic** | AST (`Program`) + `SemanticConfiguration` | Diagnósticos semánticos | Errores Semánticos | Handlers configurables por versión; tipos, inicialización, mutabilidad, scopes y análisis contextual de expresiones. |
 | **Linter** | AST (`Program`) | Notificaciones | Advertencias / Errores | Reglas de estilo y buenas prácticas configurables. |
-| **Formatter**| AST (`Program`) | Código formateado | Excepciones de formato | Estandarización idempotente de la presentación del código. |
+| **Formatter**| AST (`Program`) | Código formateado | Excepciones de formato | Estandarización idempotente; indentación configurable de bloques y representación de nodos de 1.1. |
 | **Interpreter**| AST (`Program`) | Ejecución / Salida | Errores de Runtime | Evaluación en memoria y desacoplamiento de la salida mediante interfaces. |
 ```

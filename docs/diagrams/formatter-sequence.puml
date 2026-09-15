@@ -22,16 +22,24 @@ loop Por cada sentencia del AST
   Formatter -> Program : obtiene siguiente sentencia
 
   alt Caso 1: declaración
+    Formatter -> Formatter : usa mutable para elegir let o const
     Formatter -> Formatter : aplica espacios de ':' y '='
-    Formatter -> Output : let nombre : tipo = valor;
+    Formatter -> Output : let/const nombre : tipo = valor;
 
-  else Caso 2: asignación o expresión
+  else Caso 2: bloque if / else
+    Formatter -> Formatter : formatea condición y llave de apertura
+    Formatter -> Formatter : formatStatements(rama, nivel + 1)
+    Formatter -> Formatter : aplica indentationSpaces a cada línea interna
+    Formatter -> Output : if (condición) { ... } else { ... }
+
+  else Caso 3: asignación o expresión binaria
     Formatter -> Formatter : aplica espacios alrededor del operador
     Formatter -> Output : nombre = a + b;
 
-  else Caso 3: println
+  else Caso 4: println con expresión
+    Formatter -> Formatter : formatea expresión recursivamente
     Formatter -> Formatter : agrega saltos previos configurados
-    Formatter -> Output : println(valor);
+    Formatter -> Output : println(valor / readInput(...) / readEnv(...));
   end
 end
 
