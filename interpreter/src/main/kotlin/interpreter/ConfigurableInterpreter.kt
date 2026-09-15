@@ -24,7 +24,7 @@ class ConfigurableInterpreter(
             statementHandlers.find { it.canHandle(stmt) }
                 ?: error("No handler found for statement: ${stmt::class.simpleName}")
 
-        handler.execute(stmt, environment, ::evaluate, ::execute,output)
+        handler.execute(stmt, environment, ::evaluate, ::execute, output)
     }
 
     fun evaluate(expr: Expr): Value {
