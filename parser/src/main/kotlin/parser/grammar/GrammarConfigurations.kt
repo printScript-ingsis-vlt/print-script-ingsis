@@ -7,11 +7,8 @@ import parser.engine.Rule
 import parser.engine.ref
 
 object GrammarConfigurations : VersionConfigurationProvider<GrammarConfiguration> {
-
-
-object GrammarConfigurations {
     private val expression = ExpressionRule().expression
-
+    private val expressionV1_1 = buildExpressionV11()
 
     // readInput/readEnv aceptan cualquier expression como argumento (incluyendose a si
     // mismas, ej. readInput(readEnv("X"))), asi que necesitan una referencia perezosa (ref)
@@ -66,6 +63,6 @@ object GrammarConfigurations {
     override fun getConfiguration(version: PrintScriptVersion): GrammarConfiguration =
         when (version) {
             PrintScriptVersion.V1_0 -> v1_0
-            PrintScriptVersion.V1_1 -> v1_0
+            PrintScriptVersion.V1_1 -> v1_1
         }
 }
