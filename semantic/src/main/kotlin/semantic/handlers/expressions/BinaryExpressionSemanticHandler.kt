@@ -19,9 +19,10 @@ class BinaryExpressionSemanticHandler : ExpressionSemanticHandler {
         analyzeChild: (Expr, String?) -> ExpressionAnalysis,
     ): ExpressionAnalysis {
         val binary = expression as BinaryExpression
-        val left = analyzeChild(binary.left, null)
-        val right = analyzeChild(binary.right, null)
         val operation = operationTypeOrNull(binary.operator)
+        val operandExpectedType = expectedOperandType(binary.operator, operation, expectedType)
+        val left = analyzeChild(binary.left, operandExpectedType)
+        val right = analyzeChild(binary.right, operandExpectedType)
         val errors = mutableListOf<SemanticError>()
 
         if (binary.operator in BOOLEAN_OPERATORS) {
@@ -42,6 +43,19 @@ class BinaryExpressionSemanticHandler : ExpressionSemanticHandler {
             knownNumberValue = evaluateKnownNumber(operation, left, right),
         )
     }
+
+    // Determina el contexto que el operador impone a sus operandos
+    private fun expectedOperandType(
+        operator: String,
+        operation: OperationType?,
+        expectedType: String?,
+    ): String? =
+        when {
+            operator in BOOLEAN_OPERATORS -> "boolean"
+            operation != null && operation != OperationType.PLUS -> "number"
+            operation == OperationType.PLUS -> expectedType
+            else -> null
+        }
 
     private fun operationTypeOrNull(operator: String): OperationType? =
         runCatching { OperationType.fromString(operator) }.getOrNull()

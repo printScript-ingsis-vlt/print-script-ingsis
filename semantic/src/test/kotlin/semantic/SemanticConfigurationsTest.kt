@@ -1,5 +1,6 @@
 package semantic
 
+import ast.BinaryExpression
 import ast.BooleanLiteral
 import ast.IfStatement
 import ast.NumberLiteral
@@ -88,6 +89,38 @@ class SemanticConfigurationsTest {
                         "enabled",
                         "boolean",
                         ReadEnvExpression(StringLiteral("ENABLED", pos()), pos()),
+                        pos(),
+                    ),
+                ),
+            )
+
+        val errors = SemanticAnalyzer(SemanticConfigurations.v1_1).analyze(program)
+
+        assertTrue(errors.isEmpty())
+    }
+
+    @Test
+    fun `v1 1 infers string reads inside concatenations`() {
+        val program =
+            Program(
+                pos(),
+                listOf(
+                    PrintStatement(
+                        BinaryExpression(
+                            StringLiteral("Name: ", pos()),
+                            "+",
+                            ReadInputExpression(StringLiteral("Enter your name", pos()), pos()),
+                            pos(),
+                        ),
+                        pos(),
+                    ),
+                    PrintStatement(
+                        BinaryExpression(
+                            StringLiteral("Environment: ", pos()),
+                            "+",
+                            ReadEnvExpression(StringLiteral("APP_ENV", pos()), pos()),
+                            pos(),
+                        ),
                         pos(),
                     ),
                 ),
