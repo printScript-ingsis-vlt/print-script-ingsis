@@ -40,8 +40,20 @@ data class Assignment(
     override val position: Position,
 ) : Stmt
 
+data class IfStatement(
+    val condition: Expr,
+    val thenBranch: List<Stmt>,
+    val elseBranch: List<Stmt>?,
+    override val position: Position,
+) : Stmt
+
 data class NumberLiteral(val value: Double, override val position: Position) : Expr
 
 data class StringLiteral(val value: String, override val position: Position) : Expr
 
 data class Identifier(val name: String, override val position: Position) : Expr
+
+data class BooleanLiteral(
+    val value: Boolean,
+    override val position: Position,
+) : Expr

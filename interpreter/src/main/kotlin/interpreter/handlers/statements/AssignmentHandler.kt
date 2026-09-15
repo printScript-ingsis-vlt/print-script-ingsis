@@ -15,6 +15,7 @@ class AssignmentHandler : StatementHandler {
         stmt: Stmt,
         environment: Environment,
         evaluate: (Expr) -> Value,
+        execute: (Stmt) -> Unit,
         output: Output,
     ) {
         val assign = stmt as Assignment

@@ -16,6 +16,7 @@ class VariableDeclarationHandler : StatementHandler {
         stmt: Stmt,
         environment: Environment,
         evaluate: (Expr) -> Value,
+        execute: (Stmt) -> Unit,
         output: Output,
     ) {
         val decl = stmt as VariableDeclaration
