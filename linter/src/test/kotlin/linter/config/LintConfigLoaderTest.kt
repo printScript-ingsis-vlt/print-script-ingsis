@@ -14,6 +14,7 @@ class LintConfigLoaderTest {
         // Valores por defecto
         assertEquals(IdentifierFormat.CAMEL_CASE, config.identifierFormat)
         assertFalse(config.printlnArgumentCheck)
+        assertFalse(config.readInputArgumentCheck)
     }
 
     @Test
@@ -23,6 +24,7 @@ class LintConfigLoaderTest {
 
         assertEquals(IdentifierFormat.SNAKE_CASE, config.identifierFormat)
         assertTrue(config.printlnArgumentCheck)
+        assertTrue(config.readInputArgumentCheck)
     }
 
     @Test
@@ -32,7 +34,8 @@ class LintConfigLoaderTest {
             """
             {
               "identifierFormat": "CAMEL_CASE",
-              "printlnArgumentCheck": true
+              "printlnArgumentCheck": true,
+              "readInputArgumentCheck": true
             }
             """.trimIndent(),
         )
@@ -41,6 +44,7 @@ class LintConfigLoaderTest {
 
         assertEquals(IdentifierFormat.CAMEL_CASE, config.identifierFormat)
         assertTrue(config.printlnArgumentCheck)
+        assertTrue(config.readInputArgumentCheck)
 
         tempFile.delete()
     }

@@ -6,9 +6,12 @@ import ast.NumberLiteral
 import ast.Position
 import ast.PrintStatement
 import ast.Program
+import ast.ReadInputExpression
+import ast.StringLiteral
 import ast.VariableDeclaration
 import linter.config.IdentifierFormat
 import linter.config.LintConfig
+import linter.dataclass.Severity
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -93,5 +96,33 @@ class PrintScriptLinterTest {
         assertEquals(2, notifications.size)
         assertEquals("identifier-format", notifications[0].rule)
         assertEquals("println-argument", notifications[1].rule)
+    }
+
+    @Test
+    fun `should not report complex readInput argument when check is turned off`() {
+        val linter = PrintScriptLinter(LintConfig(readInputArgumentCheck = false))
+
+        val notifications = linter.lint(programWithComplexReadInput())
+
+        assertTrue(notifications.isEmpty())
+    }
+
+    @Test
+    fun `should report complex readInput argument when check is turned on`() {
+        val linter = PrintScriptLinter(LintConfig(readInputArgumentCheck = true))
+
+        val notifications = linter.lint(programWithComplexReadInput())
+
+        assertEquals(1, notifications.size)
+        assertEquals("read-input-argument", notifications.single().rule)
+        assertEquals(Severity.ERROR, notifications.single().severity)
+    }
+
+    private fun programWithComplexReadInput(): Program {
+        val position = Position(1, 1)
+        val prompt = BinaryExpression(StringLiteral("Enter: ", position), "+", Identifier("suffix", position), position)
+        val readInput = ReadInputExpression(prompt, position)
+
+        return Program(position, listOf(PrintStatement(readInput, position)))
     }
 }

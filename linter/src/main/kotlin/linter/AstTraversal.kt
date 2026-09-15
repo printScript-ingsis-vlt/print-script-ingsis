@@ -13,7 +13,6 @@ import ast.VariableDeclaration
 
 /** Recorre todas las expresiones de un programa, incluso dentro de bloques y expresiones compuestas. */
 object AstTraversal {
-
     // Visita primero una expresion compuesta y luego sus hijos
     fun forEachExpression(
         program: Program,
