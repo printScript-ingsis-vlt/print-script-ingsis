@@ -5,6 +5,7 @@ import ast.VariableDeclaration
 import result.SemanticError
 import semantic.SemanticContext
 import semantic.StatementSemanticHandler
+import semantic.StatementSemanticTraversal
 import semantic.expressions.ExpressionAnalysis
 import semantic.symbols.SemanticSymbol
 
@@ -20,6 +21,7 @@ class VariableDeclarationSemanticHandler(
         statement: Stmt,
         context: SemanticContext,
         analyzeExpression: (ast.Expr) -> ExpressionAnalysis,
+        traversal: StatementSemanticTraversal,
     ): List<SemanticError> {
         val declaration = statement as VariableDeclaration
         val valueAnalysis = declaration.value?.let(analyzeExpression)
@@ -44,6 +46,7 @@ class VariableDeclarationSemanticHandler(
         statement: Stmt,
         context: SemanticContext,
         analyzeExpression: (ast.Expr) -> ExpressionAnalysis,
+        traversal: StatementSemanticTraversal,
     ) {
         val declaration = statement as VariableDeclaration
         val valueAnalysis = declaration.value?.let(analyzeExpression)

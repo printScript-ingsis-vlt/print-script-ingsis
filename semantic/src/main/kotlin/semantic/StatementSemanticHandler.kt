@@ -21,6 +21,7 @@ interface StatementSemanticHandler {
         statement: Stmt,
         context: SemanticContext,
         analyzeExpression: (Expr) -> ExpressionAnalysis,
+        traversal: StatementSemanticTraversal,
     ): List<SemanticError>
 
     // Aplica los efectos semanticos, idealmente solo luego de la validacion
@@ -28,5 +29,6 @@ interface StatementSemanticHandler {
         statement: Stmt,
         context: SemanticContext,
         analyzeExpression: (Expr) -> ExpressionAnalysis,
+        traversal: StatementSemanticTraversal,
     )
 }

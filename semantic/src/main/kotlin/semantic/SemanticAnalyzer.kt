@@ -8,7 +8,7 @@ import semantic.expressions.ExpressionSemanticAnalyzer
 /** Orquesta los handlers semánticos y conserva el contexto de un programa completo. */
 class SemanticAnalyzer(
     configuration: SemanticConfiguration,
-) {
+) : StatementSemanticTraversal {
     private val statementHandlers = configuration.statementHandlers
     private val expressionAnalyzer = ExpressionSemanticAnalyzer(configuration.expressionHandlers)
 
@@ -18,21 +18,37 @@ class SemanticAnalyzer(
         }
     }
 
-    fun analyze(program: Program): List<SemanticError> {
-        val context = SemanticContext()
+    fun analyze(program: Program): List<SemanticError> =
+        validateAndUpdate(program.statements, SemanticContext())
+
+    override fun validateAndUpdate(
+        statements: List<Stmt>,
+        context: SemanticContext,
+    ): List<SemanticError> {
         val errors = mutableListOf<SemanticError>()
-        for (statement in program.statements) {
+        for (statement in statements) {
             val handler = handlerFor(statement)
             val analyzeExpression = { expression: ast.Expr -> expressionAnalyzer.analyze(expression, context) }
-            val statementErrors = handler.validate(statement, context, analyzeExpression)
+            val statementErrors = handler.validate(statement, context, analyzeExpression, this)
 
             errors.addAll(statementErrors)
             if (statementErrors.isEmpty()) {
-                handler.updateEnvironment(statement, context, analyzeExpression)
+                handler.updateEnvironment(statement, context, analyzeExpression, this)
             }
         }
 
         return errors
+    }
+
+    override fun update(
+        statements: List<Stmt>,
+        context: SemanticContext,
+    ) {
+        for (statement in statements) {
+            val handler = handlerFor(statement)
+            val analyzeExpression = { expression: ast.Expr -> expressionAnalyzer.analyze(expression, context) }
+            handler.updateEnvironment(statement, context, analyzeExpression, this)
+        }
     }
 
     private fun handlerFor(statement: Stmt): StatementSemanticHandler {

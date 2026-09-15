@@ -5,6 +5,7 @@ import ast.Stmt
 import result.SemanticError
 import semantic.SemanticContext
 import semantic.StatementSemanticHandler
+import semantic.StatementSemanticTraversal
 import semantic.expressions.ExpressionAnalysis
 
 class AssignmentSemanticHandler : StatementSemanticHandler {
@@ -18,6 +19,7 @@ class AssignmentSemanticHandler : StatementSemanticHandler {
         statement: Stmt,
         context: SemanticContext,
         analyzeExpression: (ast.Expr) -> ExpressionAnalysis,
+        traversal: StatementSemanticTraversal,
     ): List<SemanticError> {
         val assignment = statement as Assignment
         val symbol = context.symbols.lookup(assignment.name)
@@ -42,6 +44,7 @@ class AssignmentSemanticHandler : StatementSemanticHandler {
         statement: Stmt,
         context: SemanticContext,
         analyzeExpression: (ast.Expr) -> ExpressionAnalysis,
+        traversal: StatementSemanticTraversal,
     ) {
         val assignment = statement as Assignment
         if (context.symbols.lookup(assignment.name) == null) return

@@ -12,7 +12,10 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import result.SemanticError
 import semantic.SemanticContext
+import semantic.StatementSemanticHandler
+import semantic.StatementSemanticTraversal
 import semantic.expressions.ExpressionSemanticAnalyzer
 import semantic.handlers.expressions.BinaryExpressionSemanticHandler
 import semantic.handlers.expressions.BooleanLiteralSemanticHandler
@@ -145,5 +148,32 @@ class StatementSemanticHandlersTest {
     private fun expressionAnalysis(context: SemanticContext): (Expr) -> semantic.expressions.ExpressionAnalysis {
         val analyzer = expressionAnalyzer()
         return { expression -> analyzer.analyze(expression, context) }
+    }
+
+    private fun StatementSemanticHandler.validate(
+        statement: ast.Stmt,
+        context: SemanticContext,
+        analyzeExpression: (Expr) -> semantic.expressions.ExpressionAnalysis,
+    ): List<SemanticError> =
+        validate(statement, context, analyzeExpression, NoOpStatementSemanticTraversal)
+
+    private fun StatementSemanticHandler.updateEnvironment(
+        statement: ast.Stmt,
+        context: SemanticContext,
+        analyzeExpression: (Expr) -> semantic.expressions.ExpressionAnalysis,
+    ) {
+        updateEnvironment(statement, context, analyzeExpression, NoOpStatementSemanticTraversal)
+    }
+
+    private object NoOpStatementSemanticTraversal : StatementSemanticTraversal {
+        override fun validateAndUpdate(
+            statements: List<ast.Stmt>,
+            context: SemanticContext,
+        ): List<SemanticError> = emptyList()
+
+        override fun update(
+            statements: List<ast.Stmt>,
+            context: SemanticContext,
+        ) = Unit
     }
 }

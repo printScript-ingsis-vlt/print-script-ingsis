@@ -5,6 +5,7 @@ import ast.Stmt
 import result.SemanticError
 import semantic.SemanticContext
 import semantic.StatementSemanticHandler
+import semantic.StatementSemanticTraversal
 import semantic.expressions.ExpressionAnalysis
 
 class PrintStatementSemanticHandler : StatementSemanticHandler {
@@ -14,6 +15,7 @@ class PrintStatementSemanticHandler : StatementSemanticHandler {
         statement: Stmt,
         context: SemanticContext,
         analyzeExpression: (ast.Expr) -> ExpressionAnalysis,
+        traversal: StatementSemanticTraversal,
     ): List<SemanticError> {
         val printStatement = statement as PrintStatement
 
@@ -25,5 +27,6 @@ class PrintStatementSemanticHandler : StatementSemanticHandler {
         statement: Stmt,
         context: SemanticContext,
         analyzeExpression: (ast.Expr) -> ExpressionAnalysis,
+        traversal: StatementSemanticTraversal,
     ) = Unit
 }

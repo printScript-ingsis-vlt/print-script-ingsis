@@ -57,12 +57,14 @@ class SemanticAnalyzerConfigurationTest {
             statement: Stmt,
             context: SemanticContext,
             analyzeExpression: (ast.Expr) -> ExpressionAnalysis,
+            traversal: StatementSemanticTraversal,
         ): List<SemanticError> = emptyList()
 
         override fun updateEnvironment(
             statement: Stmt,
             context: SemanticContext,
             analyzeExpression: (ast.Expr) -> ExpressionAnalysis,
+            traversal: StatementSemanticTraversal,
         ) = Unit
     }
 
@@ -73,12 +75,14 @@ class SemanticAnalyzerConfigurationTest {
             statement: Stmt,
             context: SemanticContext,
             analyzeExpression: (ast.Expr) -> ExpressionAnalysis,
+            traversal: StatementSemanticTraversal,
         ): List<SemanticError> = emptyList()
 
         override fun updateEnvironment(
             statement: Stmt,
             context: SemanticContext,
             analyzeExpression: (ast.Expr) -> ExpressionAnalysis,
+            traversal: StatementSemanticTraversal,
         ) = Unit
     }
 
