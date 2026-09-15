@@ -1,6 +1,7 @@
 package semantic.handlers.expressions
 
 import ast.BinaryExpression
+import ast.BooleanLiteral
 import ast.Identifier
 import ast.NumberLiteral
 import ast.StringLiteral
@@ -27,6 +28,38 @@ class ExpressionHandlersTest {
         assertEquals("string", string.type)
         assertEquals(null, string.knownNumberValue)
         assertTrue(string.errors.isEmpty())
+    }
+
+    @Test
+    fun `infers booleans and validates logical binary expressions`() {
+        val analyzer = createAnalyzer()
+        val expression =
+            BinaryExpression(
+                BooleanLiteral(true, pos()),
+                "&&",
+                BooleanLiteral(false, pos()),
+                pos(),
+            )
+
+        val analysis = analyzer.analyze(expression, SemanticContext())
+
+        assertEquals("boolean", analysis.type)
+        assertTrue(analysis.errors.isEmpty())
+    }
+
+    @Test
+    fun `logical operators require boolean operands`() {
+        val expression =
+            BinaryExpression(
+                BooleanLiteral(true, pos()),
+                "||",
+                NumberLiteral(1.0, pos()),
+                pos(),
+            )
+
+        val analysis = createAnalyzer().analyze(expression, SemanticContext())
+
+        assertEquals("Operator '||' requires boolean operands", analysis.errors.single().message)
     }
 
     @Test
@@ -159,6 +192,7 @@ class ExpressionHandlersTest {
             listOf(
                 NumberLiteralSemanticHandler(),
                 StringLiteralSemanticHandler(),
+                BooleanLiteralSemanticHandler(),
                 IdentifierSemanticHandler(),
                 BinaryExpressionSemanticHandler(),
             ),

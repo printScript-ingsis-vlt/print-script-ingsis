@@ -1,14 +1,14 @@
 package semantic.handlers.expressions
 
+import ast.BooleanLiteral
 import ast.Expr
-import ast.StringLiteral
 import semantic.SemanticContext
 import semantic.expressions.ExpressionAnalysis
 import semantic.expressions.ExpressionSemanticHandler
 
-// Util principalmente en la 1.1 para validar readInput por ejemplo
-class StringLiteralSemanticHandler : ExpressionSemanticHandler {
-    override fun canHandle(expression: Expr): Boolean = expression is StringLiteral
+// Infiere el tipo boolean para los literales true y false de la 1.1
+class BooleanLiteralSemanticHandler : ExpressionSemanticHandler {
+    override fun canHandle(expression: Expr): Boolean = expression is BooleanLiteral
 
     override fun analyze(
         expression: Expr,
@@ -17,8 +17,7 @@ class StringLiteralSemanticHandler : ExpressionSemanticHandler {
         analyzeChild: (Expr, String?) -> ExpressionAnalysis,
     ): ExpressionAnalysis =
         ExpressionAnalysis(
-            type = "string",
+            type = "boolean",
             errors = emptyList(),
-            // knownNumberValue queda null: un string no tiene valor numérico estático.
         )
 }

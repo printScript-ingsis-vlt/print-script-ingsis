@@ -15,16 +15,19 @@ class BinaryExpressionSemanticHandler : ExpressionSemanticHandler {
     override fun analyze(
         expression: Expr,
         context: SemanticContext,
-        analyzeChild: (Expr) -> ExpressionAnalysis,
+        expectedType: String?,
+        analyzeChild: (Expr, String?) -> ExpressionAnalysis,
     ): ExpressionAnalysis {
         val binary = expression as BinaryExpression
-        val left = analyzeChild(binary.left)
-        val right = analyzeChild(binary.right)
         val operation = operationTypeOrNull(binary.operator)
+        val operandExpectedType = expectedOperandType(binary.operator, operation, expectedType)
+        val left = analyzeChild(binary.left, operandExpectedType)
+        val right = analyzeChild(binary.right, operandExpectedType)
         val errors = mutableListOf<SemanticError>()
 
-        // Operador no valido
-        if (operation == null) {
+        if (binary.operator in BOOLEAN_OPERATORS) {
+            validateBooleanOperands(binary, left, right, errors)
+        } else if (operation == null) {
             errors.add(SemanticError(binary.position, "Unknown operator '${binary.operator}'"))
         } else {
             validateOperands(binary, operation, left, right, errors)
@@ -35,11 +38,24 @@ class BinaryExpressionSemanticHandler : ExpressionSemanticHandler {
         errors.addAll(right.errors)
 
         return ExpressionAnalysis(
-            type = inferType(operation, left.type, right.type),
+            type = inferType(binary.operator, operation, left.type, right.type),
             errors = errors,
             knownNumberValue = evaluateKnownNumber(operation, left, right),
         )
     }
+
+    // Determina el contexto que el operador impone a sus operandos
+    private fun expectedOperandType(
+        operator: String,
+        operation: OperationType?,
+        expectedType: String?,
+    ): String? =
+        when {
+            operator in BOOLEAN_OPERATORS -> "boolean"
+            operation != null && operation != OperationType.PLUS -> "number"
+            operation == OperationType.PLUS -> expectedType
+            else -> null
+        }
 
     private fun operationTypeOrNull(operator: String): OperationType? =
         runCatching { OperationType.fromString(operator) }.getOrNull()
@@ -67,12 +83,30 @@ class BinaryExpressionSemanticHandler : ExpressionSemanticHandler {
         }
     }
 
+    private fun validateBooleanOperands(
+        expression: BinaryExpression,
+        left: ExpressionAnalysis,
+        right: ExpressionAnalysis,
+        errors: MutableList<SemanticError>,
+    ) {
+        if (left.type != "boolean" || right.type != "boolean") {
+            errors.add(
+                SemanticError(
+                    expression.position,
+                    "Operator '${expression.operator}' requires boolean operands",
+                ),
+            )
+        }
+    }
+
     private fun inferType(
+        operator: String,
         operation: OperationType?,
         leftType: String?,
         rightType: String?,
     ): String? =
         when {
+            operator in BOOLEAN_OPERATORS && leftType == "boolean" && rightType == "boolean" -> "boolean"
             operation == OperationType.PLUS && (leftType == "string" || rightType == "string") -> "string"
             leftType == "number" && rightType == "number" -> "number"
             else -> null
@@ -103,5 +137,9 @@ class BinaryExpressionSemanticHandler : ExpressionSemanticHandler {
         } else {
             null
         }
+    }
+
+    private companion object {
+        val BOOLEAN_OPERATORS = setOf("&&", "||")
     }
 }
