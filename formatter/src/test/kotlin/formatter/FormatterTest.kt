@@ -151,6 +151,22 @@ class FormatterTest {
     }
 
     @Test
+    fun `format readInput inside a binary expression`() {
+        val expression =
+            BinaryExpression(
+                left = StringLiteral("Name: ", Position(1, 1)),
+                operator = "+",
+                right = ReadInputExpression(StringLiteral("Enter name", Position(1, 1)), Position(1, 1)),
+                position = Position(1, 1),
+            )
+        val statement = PrintStatement(expression, Position(1, 1))
+
+        val result = formatter.format(Program(Position(1, 1), listOf(statement)))
+
+        assertEquals("println(\"Name: \" + readInput(\"Enter name\"));", result)
+    }
+
+    @Test
     fun `format print with binary expression`() {
         val expr =
             BinaryExpression(
@@ -248,6 +264,36 @@ class FormatterTest {
             """
             if (enabled) {
                 println("on");
+            }
+            """.trimIndent(),
+            result,
+        )
+    }
+
+    @Test
+    fun `format constant with readEnv inside an if block`() {
+        val declaration =
+            VariableDeclaration(
+                name = "port",
+                type = "number",
+                value = ReadEnvExpression(StringLiteral("PORT", Position(1, 1)), Position(1, 1)),
+                position = Position(1, 1),
+                mutable = false,
+            )
+        val statement =
+            IfStatement(
+                condition = Identifier("enabled", Position(1, 1)),
+                thenBranch = listOf(declaration),
+                elseBranch = null,
+                position = Position(1, 1),
+            )
+
+        val result = formatter.format(Program(Position(1, 1), listOf(statement)))
+
+        assertEquals(
+            """
+            if (enabled) {
+                const port : number = readEnv("PORT");
             }
             """.trimIndent(),
             result,

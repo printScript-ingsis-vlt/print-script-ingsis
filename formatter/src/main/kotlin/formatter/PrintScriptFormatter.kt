@@ -19,7 +19,6 @@ import ast.VariableDeclaration
  * Formateador para PrintScript.
  *
  * Implementa la interfaz Formatter y aplica reglas de formato al AST.
- * Soporta: declarations, assignments, print statements, binary expressions.
  */
 class PrintScriptFormatter(
     private val rules: FormattingRules = FormattingRules.default(),

@@ -48,7 +48,8 @@ La arquitectura se organiza en una serie de módulos desacoplados y secuenciales
 ### 2.5. Formateador (Formatter)
 * **Propósito:** Reconstruir el código fuente a partir del AST siguiendo un conjunto de reglas estéticas y de espaciado estandarizadas.
 * **Consideraciones de Diseño:**
-    * **Reglas de Estilo Parametrizables:** Permite configurar de forma personalizada el espaciado alrededor de operadores, símbolos de asignación, dos puntos y saltos de línea entre bloques de sentencias.
+    * **Reglas de Estilo Parametrizables:** Permite configurar de forma personalizada el espaciado alrededor de operadores, símbolos de asignación, dos puntos, saltos de línea antes de impresiones e indentación de bloques mediante `indentationSpaces`.
+    * **Recorrido estructural del AST:** Usa `VariableDeclaration.mutable` para elegir entre `let` y `const`, formatea recursivamente las ramas de `if` / `else` y delega sus expresiones a `formatExpression`. Así puede reconstruir booleanos, expresiones binarias, `readInput(...)` y `readEnv(...)` sin conocer sus tipos ni ejecutar I/O.
     * **Idempotencia:** Formatear un código ya formateado produce exactamente el mismo resultado.
 
 ---
@@ -143,6 +144,27 @@ println(count);
 * **Etapa de corte:** **Semantic Analyzer**
 * **Comportamiento:** El handler de declaración registra `count` con tipo `number` e `initialized = false`. Al analizar el argumento de `println`, el handler de identificador encuentra el símbolo pero informa que la variable no está inicializada.
 * **Consideración:** El semantic no inventa un valor como `0`. El valor real solo existe durante la ejecución y pertenece al `Environment` del interpreter.
+
+---
+
+### Caso 8: Formateo de construcciones de PrintScript 1.1
+```printscript
+if (enabled) {
+const port:number=readEnv("PORT");
+println(readInput("Message:"));
+}
+```
+* **Etapa:** **Formatter**
+* **Comportamiento:** Recorre el `IfStatement`, incrementa el nivel de indentación de sus statements internos y usa `mutable = false` para emitir `const`. Las expresiones `readEnv` y `readInput` se formatean recursivamente como argumentos de la declaración y de la impresión.
+* **Salida esperada con `indentationSpaces = 4`:**
+  ```printscript
+  if (enabled) {
+      const port : number = readEnv("PORT");
+
+      println(readInput("Message:"));
+  }
+  ```
+* **Consideración:** Formatter solo estandariza la presentación. No verifica que `PORT` exista, no lee stdin y no convierte el valor recibido; esas responsabilidades son del interpreter.
 
 ---
 
