@@ -33,10 +33,10 @@ La arquitectura se organiza en una serie de módulos desacoplados y secuenciales
 ### 2.3. Análisis Semántico (Semantic Analyzer)
 * **Propósito:** Verificar la coherencia contextual, el alcance de las variables y el sistema de tipos estático sobre el AST generado.
 * **Consideraciones de Diseño:**
-    * **Handlers configurables:** `SemanticAnalyzer` selecciona un `StatementSemanticHandler` por statement. Cada handler valida y, solo si no hay errores, actualiza el contexto semántico. Las expresiones se analizan recursivamente mediante `ExpressionSemanticAnalyzer` y sus propios handlers.
-    * **Tabla de símbolos y ámbitos:** `SemanticContext` contiene una `SemanticSymbolTable` local al módulo semantic, separada del `Environment` del interpreter. Registra tipo, inicialización, mutabilidad y, cuando es deducible, un valor numérico conocido. La tabla ya soporta scopes anidados para los futuros bloques `if`.
-    * **Chequeo Estático de Tipos:** Garantiza que los valores asignados coincidan con el tipo declarado de la variable y valida las operaciones entre tipos compatibles (por ejemplo, permitir concatenación cuando interviene una cadena de texto o restringir la resta a tipos numéricos).
-    * **Diagnósticos de expresiones:** `ExpressionAnalysis` concentra el tipo inferido, los errores y el valor numérico conocido. Esto permite propagar errores de subexpresiones y detectar casos como divisiones por cero sin ejecutar el programa.
+    * **Configuración por versión e handlers:** El consumidor inyecta una `SemanticConfiguration`, sin configuración por defecto. `v1_0` y `v1_1` registran listas distintas de handlers de statements y expresiones; por eso un nodo de 1.1, como `IfStatement` o `ReadInputExpression`, no puede analizarse accidentalmente como 1.0. Cada `StatementSemanticHandler` valida y, solo si no hay errores, actualiza el contexto.
+    * **Tabla de símbolos y ámbitos:** `SemanticContext` contiene una `SemanticSymbolTable` local al módulo semantic, separada del `Environment` del interpreter. Registra tipo, inicialización, mutabilidad y, cuando es deducible, un valor numérico conocido. Los handlers de `if` analizan cada rama sobre una copia con scope propio y luego conservan en el contexto padre únicamente el estado garantizado por ambas ramas.
+    * **Chequeo Estático de Tipos:** Garantiza que los valores asignados coincidan con el tipo declarado de la variable, impide reasignar símbolos inmutables y valida operaciones entre tipos compatibles (por ejemplo, permitir concatenación cuando interviene una cadena de texto o restringir la resta a tipos numéricos).
+    * **Diagnósticos y contexto de expresiones:** `ExpressionAnalysis` concentra el tipo inferido, los errores y el valor numérico conocido. El statement también comunica un `expectedType` al análisis de la expresión: una declaración aporta su tipo, una asignación el tipo del símbolo destino, `printLn` espera `string` e `if` espera `boolean`. Esto permite que `readInput` y `readEnv` infieran su tipo de retorno sin realizar I/O durante el análisis.
 
 ---
 
@@ -176,7 +176,17 @@ const limit: number;
 
 ---
 
-### Caso 10: `readInput` anidado como argumento de otro `readInput`/`readEnv`
+### Caso 10: Validación contextual de `readEnv`
+```printscript
+let port: number = readEnv("PORT");
+```
+* **Etapa:** **Semantic Analyzer**
+* **Comportamiento:** El handler de declaración comunica `expectedType = "number"` al handler de `readEnv`. Este valida que el nombre de la variable de entorno sea una expresión de tipo `string` e informa que el resultado de la expresión es `number`.
+* **Consideración:** El semantic no consulta `PORT` ni intenta convertir su contenido. El interpreter deberá leer el valor real y convertirlo a número; si no puede hacerlo, será un error de runtime. `readInput` sigue el mismo contrato, usando su prompt como argumento string.
+
+---
+
+### Caso 11: `readInput` anidado como argumento de otro `readInput`/`readEnv`
 ```printscript
 let apiKey: string = readInput(readEnv("PROMPT_LABEL"));
 ```
@@ -192,7 +202,7 @@ let apiKey: string = readInput(readEnv("PROMPT_LABEL"));
 | :--- | :--- | :--- | :--- | :--- |
 | **Lexer** | Flujo de caracteres | Lista de Tokens | Errores Léxicos | Lectura en streaming y cálculo de coordenadas de posición. |
 | **Parser** | Lista de Tokens + `GrammarConfiguration` | AST (`Program`) | Errores Sintácticos | Reglas componibles por versión; precedencia de operadores y bloques recursivos vía `Ref`. |
-| **Semantic** | AST (`Program`) | Diagnósticos semánticos | Errores Semánticos | Handlers configurables; tipos, inicialización, scopes y consistencia de expresiones. |
+| **Semantic** | AST (`Program`) + `SemanticConfiguration` | Diagnósticos semánticos | Errores Semánticos | Handlers configurables por versión; tipos, inicialización, mutabilidad, scopes y análisis contextual de expresiones. |
 | **Linter** | AST (`Program`) | Notificaciones | Advertencias / Errores | Reglas de estilo y buenas prácticas configurables. |
 | **Formatter**| AST (`Program`) | Código formateado | Excepciones de formato | Estandarización idempotente de la presentación del código. |
 | **Interpreter**| AST (`Program`) | Ejecución / Salida | Errores de Runtime | Evaluación en memoria y desacoplamiento de la salida mediante interfaces. |

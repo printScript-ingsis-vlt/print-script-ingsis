@@ -8,11 +8,13 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import result.SemanticError
+import semantic.expressions.ExpressionAnalysis
+import semantic.handlers.expressions.NumberLiteralSemanticHandler
 
 class SemanticAnalyzerConfigurationTest {
     @Test
     fun `fails when no handler supports a statement`() {
-        val analyzer = SemanticAnalyzer(listOf(UnsupportedStatementHandler()))
+        val analyzer = SemanticAnalyzer(configurationWith(UnsupportedStatementHandler()))
         val program =
             Program(
                 pos(),
@@ -29,7 +31,7 @@ class SemanticAnalyzerConfigurationTest {
 
     @Test
     fun `fails when multiple handlers support a statement`() {
-        val analyzer = SemanticAnalyzer(listOf(AnyStatementHandler(), AnyStatementHandler()))
+        val analyzer = SemanticAnalyzer(configurationWith(AnyStatementHandler(), AnyStatementHandler()))
         val program =
             Program(
                 pos(),
@@ -54,11 +56,15 @@ class SemanticAnalyzerConfigurationTest {
         override fun validate(
             statement: Stmt,
             context: SemanticContext,
+            analyzeExpression: (ast.Expr, String?) -> ExpressionAnalysis,
+            traversal: StatementSemanticTraversal,
         ): List<SemanticError> = emptyList()
 
         override fun updateEnvironment(
             statement: Stmt,
             context: SemanticContext,
+            analyzeExpression: (ast.Expr, String?) -> ExpressionAnalysis,
+            traversal: StatementSemanticTraversal,
         ) = Unit
     }
 
@@ -68,11 +74,21 @@ class SemanticAnalyzerConfigurationTest {
         override fun validate(
             statement: Stmt,
             context: SemanticContext,
+            analyzeExpression: (ast.Expr, String?) -> ExpressionAnalysis,
+            traversal: StatementSemanticTraversal,
         ): List<SemanticError> = emptyList()
 
         override fun updateEnvironment(
             statement: Stmt,
             context: SemanticContext,
+            analyzeExpression: (ast.Expr, String?) -> ExpressionAnalysis,
+            traversal: StatementSemanticTraversal,
         ) = Unit
     }
+
+    private fun configurationWith(vararg handlers: StatementSemanticHandler): SemanticConfiguration =
+        SemanticConfiguration(
+            statementHandlers = handlers.toList(),
+            expressionHandlers = listOf(NumberLiteralSemanticHandler()),
+        )
 }

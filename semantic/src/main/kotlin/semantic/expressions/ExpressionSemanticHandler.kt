@@ -14,6 +14,7 @@ interface ExpressionSemanticHandler {
     fun analyze(
         expression: Expr,
         context: SemanticContext,
-        analyzeChild: (Expr) -> ExpressionAnalysis,
+        expectedType: String?,
+        analyzeChild: (Expr, String?) -> ExpressionAnalysis,
     ): ExpressionAnalysis
 }

@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class SemanticAnalyzerTest {
-    private val analyzer = SemanticAnalyzer()
+    private val analyzer = SemanticAnalyzer(SemanticConfigurations.v1_0)
 
     @Test
     fun `analyzer updates number variables after declarations and assignments`() {
