@@ -164,8 +164,8 @@ class PrintScriptFormatter(
             is BooleanLiteral -> expr.value.toString()
             is Identifier -> expr.name
             is BinaryExpression -> formatBinaryExpression(expr)
-            is ReadEnvExpression -> TODO()
-            is ReadInputExpression -> TODO()
+            is ReadEnvExpression -> "readEnv(${formatExpression(expr.envVariableName)})"
+            is ReadInputExpression -> "readInput(${formatExpression(expr.prompt)})"
         }
     }
 

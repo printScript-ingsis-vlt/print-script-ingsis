@@ -9,6 +9,8 @@ import ast.NumberLiteral
 import ast.Position
 import ast.PrintStatement
 import ast.Program
+import ast.ReadEnvExpression
+import ast.ReadInputExpression
 import ast.StringLiteral
 import ast.VariableDeclaration
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -126,6 +128,26 @@ class FormatterTest {
         val result = formatter.format(program)
 
         assertEquals("println(true);", result)
+    }
+
+    @Test
+    fun `format readInput expression`() {
+        val expression = ReadInputExpression(StringLiteral("Name", Position(1, 1)), Position(1, 1))
+        val statement = PrintStatement(expression, Position(1, 1))
+
+        val result = formatter.format(Program(Position(1, 1), listOf(statement)))
+
+        assertEquals("println(readInput(\"Name\"));", result)
+    }
+
+    @Test
+    fun `format readEnv expression`() {
+        val expression = ReadEnvExpression(Identifier("variableName", Position(1, 1)), Position(1, 1))
+        val statement = PrintStatement(expression, Position(1, 1))
+
+        val result = formatter.format(Program(Position(1, 1), listOf(statement)))
+
+        assertEquals("println(readEnv(variableName));", result)
     }
 
     @Test
