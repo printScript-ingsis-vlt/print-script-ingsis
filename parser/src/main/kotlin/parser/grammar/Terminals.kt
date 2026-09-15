@@ -13,4 +13,8 @@ object Terminals {
     val LEFT_PAREN = token(TokenType.LEFT_PAREN, "(")
     val RIGHT_PAREN = token(TokenType.RIGHT_PAREN, ")")
     val BOOLEAN = token(TokenType.BOOLEAN, "boolean")
+    val IF = token(TokenType.IF, "if")
+    val ELSE = token(TokenType.ELSE, "else")
+    val LEFT_BRACE = token(TokenType.LEFT_BRACE, "{")
+    val RIGHT_BRACE = token(TokenType.RIGHT_BRACE, "}")
 }

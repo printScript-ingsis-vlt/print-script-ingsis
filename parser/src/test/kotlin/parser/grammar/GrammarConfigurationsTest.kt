@@ -3,16 +3,22 @@ package parser.grammar
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import parser.ConfigurableParser
 import parser.engine.ParseResult
 import parser.tok
+import result.Result
 import token.TokenType.BOOLEAN
 import token.TokenType.COLON
+import token.TokenType.ELSE
 import token.TokenType.EOF
 import token.TokenType.EQUAL
 import token.TokenType.IDENTIFIER
+import token.TokenType.IF
+import token.TokenType.LEFT_BRACE
 import token.TokenType.LEFT_PAREN
 import token.TokenType.LET
 import token.TokenType.NUMBER_LITERAL
+import token.TokenType.RIGHT_BRACE
 import token.TokenType.RIGHT_PAREN
 import token.TokenType.SEMICOLON
 import token.TokenType.TRUE
@@ -29,8 +35,35 @@ class GrammarConfigurationsTest {
     }
 
     @Test
-    fun `v1_1 trae declaration, assignment y print con soporte boolean`() {
-        assertEquals(3, GrammarConfigurations.v1_1.statementRules.size)
+    fun `v1_1 trae declaration, assignment, print e if con soporte boolean`() {
+        assertEquals(4, GrammarConfigurations.v1_1.statementRules.size)
+    }
+
+    @Test
+    fun `v1_1 falla al parsear un else if de punta a punta`() {
+        // if (x) { } else if (y) { }  -> no soportado, debe fallar en el parser completo
+        val cliParser = ConfigurableParser(GrammarConfigurations.v1_1)
+        val tokens =
+            listOf(
+                tok(IF, "if"),
+                tok(LEFT_PAREN, "("),
+                tok(IDENTIFIER, "x"),
+                tok(RIGHT_PAREN, ")"),
+                tok(LEFT_BRACE, "{"),
+                tok(RIGHT_BRACE, "}"),
+                tok(ELSE, "else"),
+                tok(IF, "if"),
+                tok(LEFT_PAREN, "("),
+                tok(IDENTIFIER, "y"),
+                tok(RIGHT_PAREN, ")"),
+                tok(LEFT_BRACE, "{"),
+                tok(RIGHT_BRACE, "}"),
+                tok(EOF),
+            )
+
+        val result = cliParser.parse(tokens)
+
+        assertTrue(result is Result.Failure)
     }
 
     @Test
