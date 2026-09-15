@@ -1,5 +1,5 @@
 @startuml
-title Parser — construcción del programa vía reglas configurables
+title Parser — configuración por versión, reglas componibles y bloques recursivos
 
 skinparam monochrome true
 skinparam shadowing false
@@ -7,17 +7,20 @@ autonumber
 
 actor Usuario
 participant "CLI / consumidor" as Consumer
+participant "GrammarConfigurations" as Configurations
 participant "ConfigurableParser" as Parser
 participant "GrammarConfiguration" as Config
 participant "StatementRule[]" as Rules
 participant "ExpressionRule" as ExprRule
 participant "AST / Result" as Output
 
-Usuario -> Consumer : entrega la lista de tokens
+Usuario -> Consumer : entrega la lista de tokens para una versión
+Consumer -> Configurations : selecciona v1_0 o v1_1
+Configurations --> Consumer : GrammarConfiguration
 Consumer -> Parser : ConfigurableParser(configuration)
 activate Parser
 Parser -> Config : statementRules
-Config --> Parser : [DeclarationRule, AssignmentRule, PrintStatementRule, ...]
+Config --> Parser : lista de reglas de la version elegida
 Parser -> Parser : arma Choice(reglas.map { it.rule })
 
 Consumer -> Parser : parse(tokens)
@@ -25,11 +28,16 @@ Consumer -> Parser : parse(tokens)
 loop mientras haya tokens sin consumir
   Parser -> Rules : prueba cada StatementRule hasta que una matchee
 
-  alt Caso 1: declaración válida
-    Rules -> ExprRule : expression.parse(tokens) (si hay inicializador)
+  alt Caso 1: declaración válida (let, o const en 1.1+)
+    Rules -> ExprRule : expression.parse(tokens) (opcional en let, obligatorio en const)
     ExprRule -> ExprRule : primary -> term -> expression (precedencia, Ref para paréntesis)
-    ExprRule --> Rules : BinaryExpression / literal
-    Rules -> Output : VariableDeclaration
+    note right of ExprRule
+      en 1.1, primary tambien incluye BooleanLiteral,
+      ReadInputExpression y ReadEnvExpression
+      (extraPrimaries de ExpressionRule)
+    end note
+    ExprRule --> Rules : BinaryExpression / literal / BooleanLiteral / ReadInput.. / ReadEnv..
+    Rules -> Output : VariableDeclaration(mutable = true|false)
     Output --> Parser : sentencia creada
 
   else Caso 2: asignación válida
@@ -45,7 +53,21 @@ loop mientras haya tokens sin consumir
     Rules -> Output : PrintStatement
     Output --> Parser : sentencia creada
 
-  else Caso 4: ninguna regla matchea
+  else Caso 4 (solo 1.1+): if/else válido
+    Rules -> Rules : IF '(' expression ')' '{' statement* '}' (else '{' statement* '}')?
+    Rules -> ExprRule : expression.parse(tokens)  [condicion]
+    ExprRule --> Rules : condicion
+    Rules -> Rules : statementDispatcher (Ref) parsea cada statement del bloque,\nincluido otro IfStatement anidado
+    Rules -> Output : IfStatement(condition, thenBranch, elseBranch)
+    Output --> Parser : sentencia creada
+    note right of Rules
+      "else if" no matchea: tras 'else' se exige '{' directo,
+      nunca otro 'if'. Falla recien a nivel de
+      ConfigurableParser (tokens sobrantes sin consumir),
+      no dentro de la regla misma.
+    end note
+
+  else Caso 5: ninguna regla matchea
     Rules -> Output : SyntaxError
     Output --> Parser : error con posición
     Parser -> Parser : avanza hasta ';' o EOF (recuperación de errores)
@@ -60,4 +82,14 @@ else Hubo uno o más errores
   Output --> Consumer : errores de sintaxis
 end
 deactivate Parser
+
+note right of Configurations
+v1_0: DeclarationRule, AssignmentRule, PrintStatementRule
+(sin extraTypeTokens ni extraPrimaries -> boolean/if/const/
+readInput/readEnv no son reconocidos a nivel de gramatica,
+no solo porque el lexer de 1.0 no emite esos tokens).
+v1_1: suma ConstDeclarationRule e IfStatementRule, e inyecta
+BOOLEAN como extraTypeToken y BooleanLiteral/ReadInput/ReadEnv
+como extraPrimaries de ExpressionRule.
+end note
 @enduml
