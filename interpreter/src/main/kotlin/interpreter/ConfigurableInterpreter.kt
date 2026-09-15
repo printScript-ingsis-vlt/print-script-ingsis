@@ -8,6 +8,8 @@ import runtime.valuedataclass.Value
 
 class ConfigurableInterpreter(
     private val output: Output,
+    private val inputProvider: InputProvider = StdinInputProvider(),
+    private val envProvider: EnvProvider = SystemEnvProvider(),
     configuration: InterpreterConfiguration = InterpreterConfigurations.default,
 ) {
     private val environment = Environment()
@@ -32,6 +34,7 @@ class ConfigurableInterpreter(
             expressionHandlers.find { it.canHandle(expr) }
                 ?: error("No expression handler found for: ${expr::class.simpleName}")
 
-        return handler.evaluate(expr, environment, ::evaluate)
+        val context = ExecutionContext(environment, output, inputProvider, envProvider)
+        return handler.evaluate(expr, context, ::evaluate)
     }
 }
