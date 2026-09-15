@@ -18,8 +18,7 @@ class SemanticAnalyzer(
         }
     }
 
-    fun analyze(program: Program): List<SemanticError> =
-        validateAndUpdate(program.statements, SemanticContext())
+    fun analyze(program: Program): List<SemanticError> = validateAndUpdate(program.statements, SemanticContext())
 
     override fun validateAndUpdate(
         statements: List<Stmt>,

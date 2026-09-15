@@ -1,6 +1,7 @@
 package semantic
 
 import ast.BooleanLiteral
+import ast.IfStatement
 import ast.NumberLiteral
 import ast.PrintStatement
 import ast.Program
@@ -36,6 +37,18 @@ class SemanticConfigurationsTest {
             }
 
         assertEquals("No semantic expression handler found for: BooleanLiteral", exception.message)
+    }
+
+    @Test
+    fun `v1 0 does not register the if statement handler`() {
+        val program = Program(pos(), listOf(IfStatement(BooleanLiteral(true, pos()), emptyList(), null, pos())))
+
+        val exception =
+            assertThrows(IllegalStateException::class.java) {
+                SemanticAnalyzer(SemanticConfigurations.v1_0).analyze(program)
+            }
+
+        assertEquals("No semantic statement handler found for: IfStatement", exception.message)
     }
 
     private fun validV10Program(): Program =

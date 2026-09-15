@@ -5,9 +5,10 @@ package semantic.symbols
  *
  * Permite que los futuros bloques como if puedan declarar
  * variables locales
+ *
+ * El constructor de scopes privado permite construir una tabla a partir de una
+ * copia de scopes existentes.
  */
-
-// el constructor de scopes privado permite construir una tabla a partir de una copia de scopes existentes
 class SemanticSymbolTable private constructor(
     private val scopes: MutableList<MutableMap<String, SemanticSymbol>>,
 ) {
@@ -64,10 +65,10 @@ class SemanticSymbolTable private constructor(
     // Copia el estado actual completo de la tabla (cada mapa de cada scope)
     // en if, por ejemplo, se crearian dos copias (thenBlock y elseBlock)
     // y se analizaria independientemente sin mutar la tabla original
-    fun copy(): SemanticSymbolTable =
-        SemanticSymbolTable(scopes.map { scope -> scope.toMutableMap() }.toMutableList())
+    fun copy(): SemanticSymbolTable = SemanticSymbolTable(scopes.map { scope -> scope.toMutableMap() }.toMutableList())
 
-    // se invoca en el estado previo al if con las copias de ambos bloques y se updatea la original con el merge de ambas garantizadas
+    // Se invoca sobre el estado previo al if con las copias de ambas ramas.
+    // Actualiza la original con el estado garantizado por las dos.
     fun mergeConditionalBranches(
         thenSymbols: SemanticSymbolTable,
         elseSymbols: SemanticSymbolTable,

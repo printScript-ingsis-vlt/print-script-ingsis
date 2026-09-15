@@ -154,8 +154,7 @@ class StatementSemanticHandlersTest {
         statement: ast.Stmt,
         context: SemanticContext,
         analyzeExpression: (Expr) -> semantic.expressions.ExpressionAnalysis,
-    ): List<SemanticError> =
-        validate(statement, context, analyzeExpression, NoOpStatementSemanticTraversal)
+    ): List<SemanticError> = validate(statement, context, analyzeExpression, NoOpStatementSemanticTraversal)
 
     private fun StatementSemanticHandler.updateEnvironment(
         statement: ast.Stmt,

@@ -7,6 +7,7 @@ import semantic.handlers.expressions.IdentifierSemanticHandler
 import semantic.handlers.expressions.NumberLiteralSemanticHandler
 import semantic.handlers.expressions.StringLiteralSemanticHandler
 import semantic.handlers.statements.AssignmentSemanticHandler
+import semantic.handlers.statements.IfStatementSemanticHandler
 import semantic.handlers.statements.PrintStatementSemanticHandler
 import semantic.handlers.statements.VariableDeclarationSemanticHandler
 
@@ -44,6 +45,7 @@ object SemanticConfigurations {
                         VariableDeclarationSemanticHandler(setOf("number", "string", "boolean")),
                         AssignmentSemanticHandler(),
                         PrintStatementSemanticHandler(),
+                        IfStatementSemanticHandler(),
                     ),
                 expressionHandlers =
                     listOf(
