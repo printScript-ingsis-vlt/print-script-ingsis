@@ -1,7 +1,6 @@
 package interpreter
 
 import ast.Expr
-import runtime.Environment
 import runtime.valuedataclass.Value
 
 interface ExpressionHandler {
@@ -9,9 +8,7 @@ interface ExpressionHandler {
 
     fun evaluate(
         expr: Expr,
-        environment: Environment,
+        context: ExecutionContext,
         evaluate: (Expr) -> Value,
-        inputProvider: InputProvider,
-        output: Output,
     ): Value
 }

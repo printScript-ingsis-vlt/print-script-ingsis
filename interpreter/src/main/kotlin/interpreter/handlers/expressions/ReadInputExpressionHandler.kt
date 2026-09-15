@@ -2,10 +2,8 @@ package interpreter.handlers.expressions
 
 import ast.Expr
 import ast.ReadInputExpression
+import interpreter.ExecutionContext
 import interpreter.ExpressionHandler
-import interpreter.InputProvider
-import interpreter.Output
-import runtime.Environment
 import runtime.valuedataclass.BooleanValue
 import runtime.valuedataclass.NumberValue
 import runtime.valuedataclass.StringValue
@@ -16,10 +14,8 @@ class ReadInputExpressionHandler : ExpressionHandler {
 
     override fun evaluate(
         expr: Expr,
-        environment: Environment,
+        context: ExecutionContext,
         evaluate: (Expr) -> Value,
-        inputProvider: InputProvider,
-        output: Output,
     ): Value {
         val readInputExpr = expr as ReadInputExpression
 
@@ -31,10 +27,10 @@ class ReadInputExpressionHandler : ExpressionHandler {
             }
 
         if (promptText.isNotEmpty()) {
-            output.write(promptText)
+            context.output.write(promptText)
         }
 
-        val rawInput = inputProvider.readLine()
+        val rawInput = context.inputProvider.readLine()
         return parseInputValue(rawInput)
     }
 

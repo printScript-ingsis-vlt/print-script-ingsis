@@ -4,6 +4,7 @@ import interpreter.handlers.expressions.BinaryExpressionHandler
 import interpreter.handlers.expressions.BooleanExpressionHandler
 import interpreter.handlers.expressions.IdentifierHandler
 import interpreter.handlers.expressions.NumberLiteralHandler
+import interpreter.handlers.expressions.ReadEnvExpressionHandler
 import interpreter.handlers.expressions.ReadInputExpressionHandler
 import interpreter.handlers.expressions.StringLiteralHandler
 import interpreter.handlers.statements.AssignmentHandler
@@ -29,6 +30,7 @@ object InterpreterConfigurations {
                     BinaryExpressionHandler(),
                     BooleanExpressionHandler(),
                     ReadInputExpressionHandler(),
+                    ReadEnvExpressionHandler(),
                 ),
         )
 

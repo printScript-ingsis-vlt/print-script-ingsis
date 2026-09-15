@@ -2,10 +2,8 @@ package interpreter.handlers.expressions
 
 import ast.BooleanLiteral
 import ast.Expr
+import interpreter.ExecutionContext
 import interpreter.ExpressionHandler
-import interpreter.InputProvider
-import interpreter.Output
-import runtime.Environment
 import runtime.valuedataclass.BooleanValue
 import runtime.valuedataclass.Value
 
@@ -16,10 +14,8 @@ class BooleanExpressionHandler : ExpressionHandler {
 
     override fun evaluate(
         expr: Expr,
-        environment: Environment,
+        context: ExecutionContext,
         evaluate: (Expr) -> Value,
-        inputProvider: InputProvider,
-        output: Output,
     ): Value {
         val literal = expr as BooleanLiteral
         return BooleanValue(literal.value)

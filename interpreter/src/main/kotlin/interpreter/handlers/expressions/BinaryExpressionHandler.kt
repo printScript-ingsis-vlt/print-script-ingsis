@@ -2,10 +2,8 @@ package interpreter.handlers.expressions
 
 import ast.BinaryExpression
 import ast.Expr
+import interpreter.ExecutionContext
 import interpreter.ExpressionHandler
-import interpreter.InputProvider
-import interpreter.Output
-import runtime.Environment
 import runtime.OperationType
 import runtime.valuedataclass.NumberValue
 import runtime.valuedataclass.StringValue
@@ -16,10 +14,8 @@ class BinaryExpressionHandler : ExpressionHandler {
 
     override fun evaluate(
         expr: Expr,
-        environment: Environment,
+        context: ExecutionContext,
         evaluate: (Expr) -> Value,
-        inputProvider: InputProvider,
-        output: Output,
     ): Value {
         val binary = expr as BinaryExpression
         val left = evaluate(binary.left)
