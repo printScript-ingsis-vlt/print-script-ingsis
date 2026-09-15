@@ -1,5 +1,7 @@
 package interpreter
 
+import ast.PrintScriptVersion
+import ast.VersionConfigurationProvider
 import interpreter.handlers.expressions.BinaryExpressionHandler
 import interpreter.handlers.expressions.BooleanExpressionHandler
 import interpreter.handlers.expressions.IdentifierHandler
@@ -12,7 +14,7 @@ import interpreter.handlers.statements.IfElseStatementHandler
 import interpreter.handlers.statements.PrintStatementHandler
 import interpreter.handlers.statements.VariableDeclarationHandler
 
-object InterpreterConfigurations {
+object InterpreterConfigurations : VersionConfigurationProvider<InterpreterConfiguration> {
     // Versión 1.0: Únicamente las sentencias y expresiones base iniciales
     val v1_0 =
         InterpreterConfiguration(
@@ -54,4 +56,10 @@ object InterpreterConfigurations {
         )
 
     val default = v1_1
+
+    override fun getConfiguration(version: PrintScriptVersion): InterpreterConfiguration =
+        when (version) {
+            PrintScriptVersion.V1_0 -> v1_0
+            PrintScriptVersion.V1_1 -> v1_1
+        }
 }
