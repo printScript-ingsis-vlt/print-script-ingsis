@@ -22,6 +22,7 @@ data class FormattingRules(
     val spaceAfterColon: Boolean = true,
     val spaceAroundEqual: Boolean = true,
     val newlinesBeforePrintln: Int = 1,
+    val indentationSpaces: Int = 4,
 ) {
     companion object {
         const val NEWLINE_AFTER_SEMICOLON = true

@@ -4,6 +4,7 @@ import ast.Assignment
 import ast.BinaryExpression
 import ast.Expr
 import ast.Identifier
+import ast.IfStatement
 import ast.NumberLiteral
 import ast.PrintStatement
 import ast.Program
@@ -21,25 +22,67 @@ class PrintScriptFormatter(
     private val rules: FormattingRules = FormattingRules.default(),
 ) : Formatter {
     override fun format(program: Program): String {
-        val lines = mutableListOf<String>()
-
-        for ((index, stmt) in program.statements.withIndex()) {
-            if (index > 0 && stmt is PrintStatement && rules.newlinesBeforePrintln > 0) {
-                repeat(rules.newlinesBeforePrintln) { lines.add("") }
-            }
-            lines.add(formatStatement(stmt))
-        }
-
+        val lines = formatStatements(program.statements, indentationLevel = 0)
         return lines.joinToString("\n")
     }
 
-    private fun formatStatement(stmt: Stmt): String {
-        return when (stmt) {
-            is VariableDeclaration -> formatVariableDeclaration(stmt)
-            is Assignment -> formatAssignment(stmt)
-            is PrintStatement -> formatPrintStatement(stmt)
-            else -> throw IllegalArgumentException("Unknown statement type: ${stmt.javaClass.simpleName}")
+    // permite cualquier lista de stmt, ya sea de un bloque como de un programa entero
+    private fun formatStatements(
+        statements: List<Stmt>,
+        indentationLevel: Int,
+    ): List<String> {
+        val lines = mutableListOf<String>()
+
+        for ((index, stmt) in statements.withIndex()) {
+            if (index > 0 && stmt is PrintStatement && rules.newlinesBeforePrintln > 0) {
+                repeat(rules.newlinesBeforePrintln) { lines.add("") }
+            }
+            lines.addAll(formatStatement(stmt, indentationLevel))
         }
+
+        return lines
+    }
+
+    private fun formatStatement(
+        stmt: Stmt,
+        indentationLevel: Int,
+    ): List<String> {
+        if (stmt is IfStatement) {
+            return formatIfStatement(stmt, indentationLevel)
+        }
+
+        val formattedStatement =
+            when (stmt) {
+                is VariableDeclaration -> formatVariableDeclaration(stmt)
+                is Assignment -> formatAssignment(stmt)
+                is PrintStatement -> formatPrintStatement(stmt)
+                else -> throw IllegalArgumentException("Unknown statement type: ${stmt.javaClass.simpleName}")
+            }
+
+        return listOf(indentation(indentationLevel) + formattedStatement)
+    }
+
+    // a partir del nivel de indentacion de donde comienza el if devuelve una lista de todas las lineas del if formateadas
+    private fun formatIfStatement(
+        statement: IfStatement,
+        indentationLevel: Int,
+    ): List<String> {
+        val indentation = indentation(indentationLevel)
+        val lines = mutableListOf("${indentation}if (${formatExpression(statement.condition)}) {")
+
+        lines.addAll(formatStatements(statement.thenBranch, indentationLevel + 1))
+        statement.elseBranch?.let { elseBranch ->
+            lines.add("${indentation}} else {")
+            lines.addAll(formatStatements(elseBranch, indentationLevel + 1))
+        }
+        lines.add("${indentation}}")
+
+        return lines
+    }
+
+    private fun indentation(level: Int): String {
+        require(level >= 0) { "Indentation level cannot be negative" }
+        return " ".repeat(level * rules.indentationSpaces)
     }
 
     /**

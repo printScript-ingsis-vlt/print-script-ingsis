@@ -3,12 +3,14 @@ package formatter
 import ast.Assignment
 import ast.BinaryExpression
 import ast.Identifier
+import ast.IfStatement
 import ast.NumberLiteral
 import ast.Position
 import ast.PrintStatement
 import ast.Program
 import ast.StringLiteral
 import ast.VariableDeclaration
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -179,5 +181,105 @@ class FormatterTest {
 
         assertTrue(result.contains("x=5.0;"))
         assertFalse(result.contains("x = 5.0;"))
+    }
+
+    @Test
+    fun `format if block with default indentation`() {
+        val statement =
+            IfStatement(
+                condition = Identifier("enabled", Position(1, 1)),
+                thenBranch = listOf(PrintStatement(StringLiteral("on", Position(1, 1)), Position(1, 1))),
+                elseBranch = null,
+                position = Position(1, 1),
+            )
+
+        val result = formatter.format(Program(Position(1, 1), listOf(statement)))
+
+        assertEquals(
+            """
+            if (enabled) {
+                println("on");
+            }
+            """.trimIndent(),
+            result,
+        )
+    }
+
+    @Test
+    fun `format if else blocks`() {
+        val statement =
+            IfStatement(
+                condition = Identifier("enabled", Position(1, 1)),
+                thenBranch = listOf(PrintStatement(StringLiteral("on", Position(1, 1)), Position(1, 1))),
+                elseBranch = listOf(PrintStatement(StringLiteral("off", Position(1, 1)), Position(1, 1))),
+                position = Position(1, 1),
+            )
+
+        val result = formatter.format(Program(Position(1, 1), listOf(statement)))
+
+        assertEquals(
+            """
+            if (enabled) {
+                println("on");
+            } else {
+                println("off");
+            }
+            """.trimIndent(),
+            result,
+        )
+    }
+
+    @Test
+    fun `format nested if blocks`() {
+        val nested =
+            IfStatement(
+                condition = Identifier("secondary", Position(1, 1)),
+                thenBranch = listOf(PrintStatement(StringLiteral("nested", Position(1, 1)), Position(1, 1))),
+                elseBranch = null,
+                position = Position(1, 1),
+            )
+        val statement =
+            IfStatement(
+                condition = Identifier("primary", Position(1, 1)),
+                thenBranch = listOf(nested),
+                elseBranch = null,
+                position = Position(1, 1),
+            )
+
+        val result = formatter.format(Program(Position(1, 1), listOf(statement)))
+
+        assertEquals(
+            """
+            if (primary) {
+                if (secondary) {
+                    println("nested");
+                }
+            }
+            """.trimIndent(),
+            result,
+        )
+    }
+
+    @Test
+    fun `format if block with configured indentation`() {
+        val formatter = PrintScriptFormatter(FormattingRules(indentationSpaces = 2))
+        val statement =
+            IfStatement(
+                condition = Identifier("enabled", Position(1, 1)),
+                thenBranch = listOf(PrintStatement(StringLiteral("on", Position(1, 1)), Position(1, 1))),
+                elseBranch = null,
+                position = Position(1, 1),
+            )
+
+        val result = formatter.format(Program(Position(1, 1), listOf(statement)))
+
+        assertEquals(
+            """
+            if (enabled) {
+              println("on");
+            }
+            """.trimIndent(),
+            result,
+        )
     }
 }
