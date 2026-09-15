@@ -3,12 +3,14 @@ package semantic
 import ast.Program
 import ast.Stmt
 import result.SemanticError
+import semantic.expressions.ExpressionSemanticAnalyzer
 
 /** Orquesta los handlers semánticos y conserva el contexto de un programa completo. */
 class SemanticAnalyzer(
     configuration: SemanticConfiguration,
 ) {
     private val statementHandlers = configuration.statementHandlers
+    private val expressionAnalyzer = ExpressionSemanticAnalyzer(configuration.expressionHandlers)
 
     init {
         require(statementHandlers.isNotEmpty()) {
@@ -21,11 +23,12 @@ class SemanticAnalyzer(
         val errors = mutableListOf<SemanticError>()
         for (statement in program.statements) {
             val handler = handlerFor(statement)
-            val statementErrors = handler.validate(statement, context)
+            val analyzeExpression = { expression: ast.Expr -> expressionAnalyzer.analyze(expression, context) }
+            val statementErrors = handler.validate(statement, context, analyzeExpression)
 
             errors.addAll(statementErrors)
             if (statementErrors.isEmpty()) {
-                handler.updateEnvironment(statement, context)
+                handler.updateEnvironment(statement, context, analyzeExpression)
             }
         }
 

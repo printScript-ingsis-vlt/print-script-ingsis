@@ -23,8 +23,9 @@ class BinaryExpressionSemanticHandler : ExpressionSemanticHandler {
         val operation = operationTypeOrNull(binary.operator)
         val errors = mutableListOf<SemanticError>()
 
-        // Operador no valido
-        if (operation == null) {
+        if (binary.operator in BOOLEAN_OPERATORS) {
+            validateBooleanOperands(binary, left, right, errors)
+        } else if (operation == null) {
             errors.add(SemanticError(binary.position, "Unknown operator '${binary.operator}'"))
         } else {
             validateOperands(binary, operation, left, right, errors)
@@ -35,7 +36,7 @@ class BinaryExpressionSemanticHandler : ExpressionSemanticHandler {
         errors.addAll(right.errors)
 
         return ExpressionAnalysis(
-            type = inferType(operation, left.type, right.type),
+            type = inferType(binary.operator, operation, left.type, right.type),
             errors = errors,
             knownNumberValue = evaluateKnownNumber(operation, left, right),
         )
@@ -67,12 +68,30 @@ class BinaryExpressionSemanticHandler : ExpressionSemanticHandler {
         }
     }
 
+    private fun validateBooleanOperands(
+        expression: BinaryExpression,
+        left: ExpressionAnalysis,
+        right: ExpressionAnalysis,
+        errors: MutableList<SemanticError>,
+    ) {
+        if (left.type != "boolean" || right.type != "boolean") {
+            errors.add(
+                SemanticError(
+                    expression.position,
+                    "Operator '${expression.operator}' requires boolean operands",
+                ),
+            )
+        }
+    }
+
     private fun inferType(
+        operator: String,
         operation: OperationType?,
         leftType: String?,
         rightType: String?,
     ): String? =
         when {
+            operator in BOOLEAN_OPERATORS && leftType == "boolean" && rightType == "boolean" -> "boolean"
             operation == OperationType.PLUS && (leftType == "string" || rightType == "string") -> "string"
             leftType == "number" && rightType == "number" -> "number"
             else -> null
@@ -103,5 +122,9 @@ class BinaryExpressionSemanticHandler : ExpressionSemanticHandler {
         } else {
             null
         }
+    }
+
+    private companion object {
+        val BOOLEAN_OPERATORS = setOf("&&", "||")
     }
 }

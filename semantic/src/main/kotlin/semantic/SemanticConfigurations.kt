@@ -1,7 +1,8 @@
 package semantic
 
-import semantic.expressions.ExpressionSemanticAnalyzer
+import semantic.expressions.ExpressionSemanticHandler
 import semantic.handlers.expressions.BinaryExpressionSemanticHandler
+import semantic.handlers.expressions.BooleanLiteralSemanticHandler
 import semantic.handlers.expressions.IdentifierSemanticHandler
 import semantic.handlers.expressions.NumberLiteralSemanticHandler
 import semantic.handlers.expressions.StringLiteralSemanticHandler
@@ -12,33 +13,45 @@ import semantic.handlers.statements.VariableDeclarationSemanticHandler
 /** Conjunto de handlers que define el comportamiento semántico de una versión. */
 data class SemanticConfiguration(
     val statementHandlers: List<StatementSemanticHandler>,
+    val expressionHandlers: List<ExpressionSemanticHandler>,
 )
 
 /** Configuraciones de handlers semánticos disponibles por versión de PrintScript. */
 object SemanticConfigurations {
     val v1_0: SemanticConfiguration
-        get() = SemanticConfiguration(statementHandlers())
+        get() =
+            SemanticConfiguration(
+                statementHandlers =
+                    listOf(
+                        VariableDeclarationSemanticHandler(setOf("number", "string")),
+                        AssignmentSemanticHandler(),
+                        PrintStatementSemanticHandler(),
+                    ),
+                expressionHandlers =
+                    listOf(
+                        NumberLiteralSemanticHandler(),
+                        StringLiteralSemanticHandler(),
+                        IdentifierSemanticHandler(),
+                        BinaryExpressionSemanticHandler(),
+                    ),
+            )
 
     val v1_1: SemanticConfiguration
-        get() = SemanticConfiguration(statementHandlers())
-
-    private fun statementHandlers(): List<StatementSemanticHandler> {
-        val expressionAnalyzer = expressionAnalyzer()
-
-        return listOf(
-            VariableDeclarationSemanticHandler(expressionAnalyzer),
-            AssignmentSemanticHandler(expressionAnalyzer),
-            PrintStatementSemanticHandler(expressionAnalyzer),
-        )
-    }
-
-    private fun expressionAnalyzer(): ExpressionSemanticAnalyzer =
-        ExpressionSemanticAnalyzer(
-            listOf(
-                NumberLiteralSemanticHandler(),
-                StringLiteralSemanticHandler(),
-                IdentifierSemanticHandler(),
-                BinaryExpressionSemanticHandler(),
-            ),
-        )
+        get() =
+            SemanticConfiguration(
+                statementHandlers =
+                    listOf(
+                        VariableDeclarationSemanticHandler(setOf("number", "string", "boolean")),
+                        AssignmentSemanticHandler(),
+                        PrintStatementSemanticHandler(),
+                    ),
+                expressionHandlers =
+                    listOf(
+                        NumberLiteralSemanticHandler(),
+                        StringLiteralSemanticHandler(),
+                        BooleanLiteralSemanticHandler(),
+                        IdentifierSemanticHandler(),
+                        BinaryExpressionSemanticHandler(),
+                    ),
+            )
 }
