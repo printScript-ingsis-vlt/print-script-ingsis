@@ -55,6 +55,7 @@ class VariableDeclarationSemanticHandler(
             SemanticSymbol(
                 type = declaration.type,
                 initialized = declaration.value != null,
+                mutable = declaration.mutable,
                 knownNumberValue = valueAnalysis?.knownNumberValue,
             ),
         )

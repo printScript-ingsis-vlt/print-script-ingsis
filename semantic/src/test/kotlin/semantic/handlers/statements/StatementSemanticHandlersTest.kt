@@ -41,6 +41,25 @@ class StatementSemanticHandlersTest {
     }
 
     @Test
+    fun `constant declaration is added as immutable to the symbol table`() {
+        val context = SemanticContext()
+        val handler = variableDeclarationHandler()
+        val statement =
+            VariableDeclaration(
+                name = "limit",
+                type = "number",
+                value = NumberLiteral(10.0, pos()),
+                position = pos(),
+                mutable = false,
+            )
+
+        assertTrue(handler.validate(statement, context, expressionAnalysis(context)).isEmpty())
+        handler.updateEnvironment(statement, context, expressionAnalysis(context))
+
+        assertEquals(false, context.symbols.lookup("limit")?.mutable)
+    }
+
+    @Test
     fun `invalid declarations report their type errors without updating the symbol table`() {
         val context = SemanticContext()
         val handler = variableDeclarationHandler()
