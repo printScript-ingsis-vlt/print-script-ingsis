@@ -4,39 +4,37 @@ import ast.Expr
 import ast.VariableDeclaration
 import parser.engine.Rule
 import parser.engine.action
-import parser.engine.opt
 import parser.engine.seq
+import parser.grammar.Terminals.CONST
 import parser.grammar.Terminals.EQUAL
-import parser.grammar.Terminals.LET
 import parser.grammar.Terminals.SEMICOLON
 import token.Token
 
 /**
- * let IDENTIFIER : tipo ('=' expression)? ';'
+ * const IDENTIFIER : tipo '=' expression ';'
  *
- * A diferencia de const ([ConstDeclarationRule]), el inicializador es opcional y la
- * variable resultante queda mutable (VariableDeclaration.mutable por defecto es true).
+ * A diferencia de let ([DeclarationRule]), el inicializador es obligatorio y el
+ * resultado es un VariableDeclaration con mutable = false.
  */
-class DeclarationRule(
+class ConstDeclarationRule(
     expression: Rule,
     extraTypeTokens: List<Rule> = emptyList(),
 ) : StatementRule {
     private val typedName: Rule = TypedNameRule(extraTypeTokens).rule
-
-    // '=' expression -> solo el valor, el '=' no aporta nada al AST
     private val initializer: Rule =
         action(seq(EQUAL, expression)) { parts -> (parts as List<*>)[1] as Expr }
 
     override val rule: Rule =
-        action(seq(LET, typedName, opt(initializer), SEMICOLON)) { values ->
-            val (letToken, declared, value) = values as List<*>
+        action(seq(CONST, typedName, initializer, SEMICOLON)) { values ->
+            val (constToken, declared, value) = values as List<*>
             declared as TypedName
 
             VariableDeclaration(
                 name = declared.name.value,
                 type = declared.type.value,
-                value = value as Expr?,
-                position = (letToken as Token).start,
+                value = value as Expr,
+                position = (constToken as Token).start,
+                mutable = false,
             )
         }
 }

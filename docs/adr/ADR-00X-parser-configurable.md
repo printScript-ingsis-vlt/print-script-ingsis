@@ -1,4 +1,4 @@
-# ADR-008: Parser extensible mediante reglas componibles e inyección de configuración
+# ADR-00X: Parser extensible mediante reglas componibles e inyección de configuración
 
 * **Estado:** Implementado
 * **Fecha:** 2026-09-13
@@ -206,3 +206,120 @@ exactamente `"println"`), `Ref` con una gramática recursiva (paréntesis anidad
 integración completa vía `ConfigurableParser` (declaración + asignación + print en un
 mismo programa, y una `GrammarConfiguration` reducida que confirma que lo no habilitado
 se rechaza).
+
+## Actualización: implementación concreta de `GrammarConfigurations.v1_1`
+
+Esta sección documenta cómo se terminaron resolviendo, en código, los puntos que el ADR
+dejaba abiertos ("a futuro, va a bloquear los bloques `{ }` de `if/else`", "`typedName`
+queda reutilizable para `const`").
+
+### `extraTypeTokens`: mismo mecanismo que `extraPrimaries`, para el tipo de una declaración
+
+`ExpressionRule` ya recibía `extraPrimaries: List<Rule>` para sumar alternativas a
+`primary` sin editar la clase. `DeclarationRule` no tenía un mecanismo equivalente para su
+posición de tipo — el tipo era siempre `IDENTIFIER` a secas, lo cual alcanzaba para
+`number`/`string` (el lexer los tokeniza como identificadores comunes) pero no para
+`boolean`, que el lexer de 1.1 tokeniza como `BOOLEAN`, un tipo de token distinto.
+
+```kotlin
+class DeclarationRule(
+    expression: Rule,
+    extraTypeTokens: List<Rule> = emptyList(),
+) : StatementRule {
+    private val typedName: Rule = TypedNameRule(extraTypeTokens).rule
+    // ...
+}
+```
+
+`GrammarConfigurations.v1_0` sigue instanciando `DeclarationRule(expression)` sin el
+segundo parámetro — el comportamiento de 1.0 queda **exactamente igual** que antes de
+este cambio. `v1_1` pasa `extraTypeTokens = listOf(Terminals.BOOLEAN)`. Esto confirma la
+misma decisión de diseño que ya regía para `extraPrimaries`: extender por parámetro en
+vez de por herencia o por un `if (version == ...)` dentro de la regla.
+
+`TypedNameRule` (nueva) extrae la lógica de `IDENTIFIER ':' tipo` que antes vivía inline
+en `DeclarationRule`, para que `ConstDeclarationRule` la reutilice sin duplicarla — tal
+como este mismo ADR anticipaba.
+
+### `Ref` se usa, como estaba previsto, para los bloques de `if`
+
+`IfStatementRule` necesita poder parsear *cualquier* statement dentro de sus bloques
+`{ }`, incluido otro `if` anidado — pero esa lista de statements (incluyéndose a sí misma)
+no existe todavía mientras se construye. `GrammarConfigurations` resuelve esto con el
+mismo patrón `Ref` que el ADR documentaba para paréntesis, combinado con un
+`lateinit var`:
+
+```kotlin
+private fun buildV11(): GrammarConfiguration {
+    lateinit var statementRules: List<StatementRule>
+    val statementDispatcher: Rule = ref { Choice(statementRules.map { it.rule }) }
+
+    statementRules = listOf(
+        DeclarationRule(expressionV1_1, extraTypeTokens = listOf(Terminals.BOOLEAN)),
+        ConstDeclarationRule(expressionV1_1, extraTypeTokens = listOf(Terminals.BOOLEAN)),
+        AssignmentRule(expressionV1_1),
+        PrintStatementRule(expressionV1_1),
+        IfStatementRule(expressionV1_1, statementDispatcher),
+    )
+
+    return GrammarConfiguration(statementRules)
+}
+```
+
+`Ref` resuelve `statementDispatcher` recién cuando se llama a `.parse(...)`, momento en el
+que `statementRules` ya está completamente inicializada — el mismo motivo por el que
+sirve para expresiones parentizadas, aplicado ahora a bloques de statements.
+
+### Un caso no anticipado: la recursión también aparece en expresiones
+
+El ADR preveía `Ref` para statements recursivos, pero `readInput`/`readEnv` agregaron un
+caso similar del lado de las expresiones: su argumento puede ser *cualquier* expresión,
+incluyendo otro `readInput`/`readEnv` anidado (`readInput(readEnv("PROMPT_VAR"))`). Se
+resolvió con el mismo mecanismo, aplicado a la expresión en vez de al statement:
+
+```kotlin
+private fun buildExpressionV11(): Rule {
+    lateinit var expr: Rule
+    val expressionRef: Rule = ref { expr }
+
+    expr = ExpressionRule(
+        extraPrimaries = listOf(
+            BooleanLiteralRule.rule,
+            ReadInputExpressionRule(expressionRef).rule,
+            ReadEnvExpressionRule(expressionRef).rule,
+        ),
+    ).expression
+
+    return expr
+}
+```
+
+### `const`: reutiliza `VariableDeclaration`, no un nodo separado
+
+`ConstDeclarationRule` parsea `const IDENTIFIER : tipo '=' expression ';'` (inicializador
+obligatorio, a diferencia de `let`) y construye el mismo nodo `VariableDeclaration` que
+`DeclarationRule`, con `mutable = false`. No existe un nodo `ConstDeclaration` en el AST —
+la diferencia entre `let` y `const` es un campo, no una jerarquía de tipos distinta, para
+que semantic e interpreter no necesiten un handler completo duplicado por una sola regla
+de negocio ("no se puede reasignar").
+
+### Por qué `readInput`/`readEnv` no restringen su argumento en la gramática
+
+La consigna de 1.1 dice que `readInput` "solo puede llamarse con un identificador o un
+literal, pero esto puede estar prendido o apagado" — es una regla del **linter**,
+configurable en runtime. Si el parser restringiera la gramática a solo esas dos formas,
+esa regla no podría "apagarse" nunca: la información ya se habría perdido antes de llegar
+al linter. Por eso `ReadInputExpressionRule`/`ReadEnvExpressionRule` aceptan `expression`
+completa como argumento, igual que `println`, y la restricción vive más arriba en el
+pipeline, donde puede activarse o no.
+
+## Estado de pruebas (actualizado)
+
+Se suman a la cobertura descripta arriba: `BooleanLiteralRule` y su integración en
+`ExpressionRule`/`DeclarationRule`; `IfStatementRule` (bloque simple, `if/else`, bloque
+vacío, sin llaves falla, `else if` falla de punta a punta vía `ConfigurableParser`,
+anidado); `ReadInputExpressionRule`/`ReadEnvExpressionRule` (aislado y anidado uno dentro
+del otro); `ConstDeclarationRule` (con inicializador, sin inicializador falla, sin `=`
+falla); y en `GrammarConfigurationsTest`, que `v1_0` seguía rechazando cada uno de estos
+tokens/construcciones a nivel de gramática, no solo porque el lexer de 1.0 nunca los
+produce.
