@@ -18,9 +18,12 @@ import token.TokenType.LEFT_BRACE
 import token.TokenType.LEFT_PAREN
 import token.TokenType.LET
 import token.TokenType.NUMBER_LITERAL
+import token.TokenType.READENV
+import token.TokenType.READINPUT
 import token.TokenType.RIGHT_BRACE
 import token.TokenType.RIGHT_PAREN
 import token.TokenType.SEMICOLON
+import token.TokenType.STRING_LITERAL
 import token.TokenType.TRUE
 
 class GrammarConfigurationsTest {
@@ -95,6 +98,67 @@ class GrammarConfigurationsTest {
                 tok(IDENTIFIER, "flag"),
                 tok(COLON, ":"),
                 tok(BOOLEAN, "boolean"),
+                tok(SEMICOLON, ";"),
+                tok(EOF),
+            )
+
+        assertTrue(rules.none { it.parse(tokens, 0) is ParseResult.Success })
+    }
+
+    @Test
+    fun `v1_1 parsea readInput en contexto de asignacion`() {
+        // x = readInput("Enter value: ");
+        val cliParser = ConfigurableParser(GrammarConfigurations.v1_1)
+        val tokens =
+            listOf(
+                tok(IDENTIFIER, "x"),
+                tok(EQUAL, "="),
+                tok(READINPUT, "readInput"),
+                tok(LEFT_PAREN, "("),
+                tok(STRING_LITERAL, "Enter value: "),
+                tok(RIGHT_PAREN, ")"),
+                tok(SEMICOLON, ";"),
+                tok(EOF),
+            )
+
+        val result = cliParser.parse(tokens)
+
+        assertTrue(result is Result.Success)
+    }
+
+    @Test
+    fun `v1_1 parsea readInput anidado con readEnv como argumento`() {
+        // readInput(readEnv("PROMPT_VAR"))
+        val rules = GrammarConfigurations.v1_1.statementRules.map { it.rule }
+        val tokens =
+            listOf(
+                tok(IDENTIFIER, "x"),
+                tok(EQUAL, "="),
+                tok(READINPUT, "readInput"),
+                tok(LEFT_PAREN, "("),
+                tok(READENV, "readEnv"),
+                tok(LEFT_PAREN, "("),
+                tok(STRING_LITERAL, "PROMPT_VAR"),
+                tok(RIGHT_PAREN, ")"),
+                tok(RIGHT_PAREN, ")"),
+                tok(SEMICOLON, ";"),
+                tok(EOF),
+            )
+
+        assertTrue(rules.any { it.parse(tokens, 0) is ParseResult.Success })
+    }
+
+    @Test
+    fun `v1_0 no reconoce readInput`() {
+        val rules = GrammarConfigurations.v1_0.statementRules.map { it.rule }
+        val tokens =
+            listOf(
+                tok(IDENTIFIER, "x"),
+                tok(EQUAL, "="),
+                tok(READINPUT, "readInput"),
+                tok(LEFT_PAREN, "("),
+                tok(STRING_LITERAL, "Enter value: "),
+                tok(RIGHT_PAREN, ")"),
                 tok(SEMICOLON, ";"),
                 tok(EOF),
             )

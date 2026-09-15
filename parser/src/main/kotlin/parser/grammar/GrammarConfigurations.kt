@@ -6,7 +6,27 @@ import parser.engine.ref
 
 object GrammarConfigurations {
     private val expression = ExpressionRule().expression
-    private val expressionV1_1 = ExpressionRule(extraPrimaries = listOf(BooleanLiteralRule.rule)).expression
+    private val expressionV1_1 = buildExpressionV11()
+
+    // readInput/readEnv aceptan cualquier expression como argumento (incluyendose a si
+    // mismas, ej. readInput(readEnv("X"))), asi que necesitan una referencia perezosa (ref)
+    // a la expression completa antes de que termine de construirse.
+    private fun buildExpressionV11(): Rule {
+        lateinit var expr: Rule
+        val expressionRef: Rule = ref { expr }
+
+        expr =
+            ExpressionRule(
+                extraPrimaries =
+                    listOf(
+                        BooleanLiteralRule.rule,
+                        ReadInputExpressionRule(expressionRef).rule,
+                        ReadEnvExpressionRule(expressionRef).rule,
+                    ),
+            ).expression
+
+        return expr
+    }
 
     val v1_0 =
         GrammarConfiguration(

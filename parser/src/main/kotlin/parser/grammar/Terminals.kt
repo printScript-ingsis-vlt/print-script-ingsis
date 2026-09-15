@@ -17,4 +17,6 @@ object Terminals {
     val ELSE = token(TokenType.ELSE, "else")
     val LEFT_BRACE = token(TokenType.LEFT_BRACE, "{")
     val RIGHT_BRACE = token(TokenType.RIGHT_BRACE, "}")
+    val READINPUT = token(TokenType.READINPUT, "readInput")
+    val READENV = token(TokenType.READENV, "readEnv")
 }
