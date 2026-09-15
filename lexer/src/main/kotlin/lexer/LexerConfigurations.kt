@@ -53,7 +53,7 @@ object LexerConfigurations : VersionConfigurationProvider<LexerConfiguration> {
                     ),
         )
 
-    val default = v1_0
+    val default = v1_1
 
     override fun getConfiguration(version: PrintScriptVersion): LexerConfiguration =
         when (version) {

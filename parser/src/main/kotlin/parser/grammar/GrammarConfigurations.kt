@@ -58,7 +58,7 @@ object GrammarConfigurations : VersionConfigurationProvider<GrammarConfiguration
         return GrammarConfiguration(statementRules)
     }
 
-    val default = v1_0
+    val default = v1_1
 
     override fun getConfiguration(version: PrintScriptVersion): GrammarConfiguration =
         when (version) {
