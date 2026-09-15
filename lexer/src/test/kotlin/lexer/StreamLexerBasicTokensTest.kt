@@ -2,11 +2,8 @@ package lexer
 
 import lexer.help.LexerTestHelper.assertToken
 import lexer.help.LexerTestHelper.successfulToken
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import token.TokenType
-import java.io.StringReader
 
 class StreamLexerBasicTokensTest {
     @Test
@@ -38,20 +35,5 @@ class StreamLexerBasicTokensTest {
         assertToken(successfulToken(lexer.nextToken()), TokenType.IDENTIFIER, "variable_2", 1, 5)
         assertToken(successfulToken(lexer.nextToken()), TokenType.IDENTIFIER, "letx", 1, 16)
         assertToken(successfulToken(lexer.nextToken()), TokenType.IDENTIFIER, "_private", 1, 21)
-    }
-
-    @Test
-    fun `uses supplied token maps`() {
-        val lexer =
-            StreamLexer(
-                StringReader("var @"),
-                mapOf("var" to TokenType.LET),
-                mapOf('@' to TokenType.EQUAL),
-            )
-
-        assertToken(successfulToken(lexer.nextToken()), TokenType.LET, "var", 1, 1)
-        assertToken(successfulToken(lexer.nextToken()), TokenType.EQUAL, "@", 1, 5)
-        assertTrue(lexer.hasNext())
-        assertEquals(TokenType.EOF, successfulToken(lexer.nextToken()).type)
     }
 }

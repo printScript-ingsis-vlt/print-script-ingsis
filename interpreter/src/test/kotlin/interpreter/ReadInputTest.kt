@@ -25,7 +25,7 @@ class ReadInputTest {
     fun `readInput retorna string`() {
         val mockInput = MockInputProvider(listOf("Hola Mundo"))
         val output = TestOutput()
-        val interpreter = ConfigurableInterpreter(output, mockInput)
+        val interpreter = ConfigurableInterpreter(output, InterpreterConfigurations.default, mockInput)
 
         val expr = ReadInputExpression(StringLiteral("Ingrese texto: ", pos()), pos())
         val result = interpreter.evaluate(expr)
@@ -41,7 +41,7 @@ class ReadInputTest {
     fun `readInput parsea numero correctamente`() {
         val mockInput = MockInputProvider(listOf("42.5"))
         val output = TestOutput()
-        val interpreter = ConfigurableInterpreter(output, mockInput)
+        val interpreter = ConfigurableInterpreter(output, InterpreterConfigurations.default, mockInput)
 
         val expr = ReadInputExpression(StringLiteral("Ingrese texto: ", pos()), pos())
         val result = interpreter.evaluate(expr)
@@ -53,7 +53,7 @@ class ReadInputTest {
     fun `readInput falla con input invalido para boolean`() {
         val mockInput = MockInputProvider(listOf("invalid_bool"))
         val output = TestOutput()
-        val interpreter = ConfigurableInterpreter(output, mockInput)
+        val interpreter = ConfigurableInterpreter(output, InterpreterConfigurations.default, mockInput)
 
         val expr = ReadInputExpression(StringLiteral("Ingrese texto: ", pos()), pos())
 
