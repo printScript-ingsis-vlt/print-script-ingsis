@@ -47,6 +47,7 @@ object GrammarConfigurations {
         statementRules =
             listOf(
                 DeclarationRule(expressionV1_1, extraTypeTokens = listOf(Terminals.BOOLEAN)),
+                ConstDeclarationRule(expressionV1_1, extraTypeTokens = listOf(Terminals.BOOLEAN)),
                 AssignmentRule(expressionV1_1),
                 PrintStatementRule(expressionV1_1),
                 IfStatementRule(expressionV1_1, statementDispatcher),

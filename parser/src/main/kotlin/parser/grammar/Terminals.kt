@@ -19,4 +19,5 @@ object Terminals {
     val RIGHT_BRACE = token(TokenType.RIGHT_BRACE, "}")
     val READINPUT = token(TokenType.READINPUT, "readInput")
     val READENV = token(TokenType.READENV, "readEnv")
+    val CONST = token(TokenType.CONST, "const")
 }

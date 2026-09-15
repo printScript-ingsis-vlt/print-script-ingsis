@@ -9,6 +9,7 @@ import parser.tok
 import result.Result
 import token.TokenType.BOOLEAN
 import token.TokenType.COLON
+import token.TokenType.CONST
 import token.TokenType.ELSE
 import token.TokenType.EOF
 import token.TokenType.EQUAL
@@ -38,8 +39,8 @@ class GrammarConfigurationsTest {
     }
 
     @Test
-    fun `v1_1 trae declaration, assignment, print e if con soporte boolean`() {
-        assertEquals(4, GrammarConfigurations.v1_1.statementRules.size)
+    fun `v1_1 trae declaration, const, assignment, print e if con soporte boolean`() {
+        assertEquals(5, GrammarConfigurations.v1_1.statementRules.size)
     }
 
     @Test
@@ -159,6 +160,44 @@ class GrammarConfigurationsTest {
                 tok(LEFT_PAREN, "("),
                 tok(STRING_LITERAL, "Enter value: "),
                 tok(RIGHT_PAREN, ")"),
+                tok(SEMICOLON, ";"),
+                tok(EOF),
+            )
+
+        assertTrue(rules.none { it.parse(tokens, 0) is ParseResult.Success })
+    }
+
+    @Test
+    fun `v1_1 parsea una const declaration con inicializador`() {
+        val cliParser = ConfigurableParser(GrammarConfigurations.v1_1)
+        val tokens =
+            listOf(
+                tok(CONST, "const"),
+                tok(IDENTIFIER, "x"),
+                tok(COLON, ":"),
+                tok(IDENTIFIER, "Number"),
+                tok(EQUAL, "="),
+                tok(NUMBER_LITERAL, "42"),
+                tok(SEMICOLON, ";"),
+                tok(EOF),
+            )
+
+        val result = cliParser.parse(tokens)
+
+        assertTrue(result is Result.Success)
+    }
+
+    @Test
+    fun `v1_0 no reconoce const`() {
+        val rules = GrammarConfigurations.v1_0.statementRules.map { it.rule }
+        val tokens =
+            listOf(
+                tok(CONST, "const"),
+                tok(IDENTIFIER, "x"),
+                tok(COLON, ":"),
+                tok(IDENTIFIER, "Number"),
+                tok(EQUAL, "="),
+                tok(NUMBER_LITERAL, "42"),
                 tok(SEMICOLON, ";"),
                 tok(EOF),
             )
