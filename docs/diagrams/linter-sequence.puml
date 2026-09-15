@@ -7,29 +7,53 @@ autonumber
 
 actor Usuario
 participant "CLI / consumidor" as Consumer
+participant "LintConfig" as Config
 participant "PrintScriptLinter" as Linter
 participant "Reglas activas" as Rules
+participant "AstTraversal" as Traversal
 participant "Notificaciones" as Output
 
 Usuario -> Consumer : solicita lint archivo
-Consumer -> Linter : lint(program)
+Consumer -> Config : carga o construye configuración
+Config --> Consumer : LintConfig
+Consumer -> Linter : PrintScriptLinter(config).lint(program)
 activate Linter
-Linter -> Linter : crea reglas según LintConfig
+Linter -> Linter : buildRules() según LintConfig
+Linter -> Rules : registra IdentifierFormatRule
 
-alt Caso 1: identificador correcto
+opt printlnArgumentCheck = true
+  Linter -> Rules : registra PrintlnArgumentRule
+end
+
+opt readInputArgumentCheck = true
+  Linter -> Rules : registra ReadInputArgumentRule
+end
+
+group Ejecuta cada regla activa sobre el Program
   Linter -> Rules : IdentifierFormatRule.check(program)
   Rules -> Rules : verifica camelCase o snake_case
-  Rules --> Linter : sin advertencias
+  Rules --> Linter : notificaciones de formato
 
-else Caso 2: identificador no cumple formato
-  Linter -> Rules : IdentifierFormatRule.check(program)
-  Rules --> Output : WARNING identifier-format
-  Output --> Linter : notificación
-
-else Caso 3: println con expresión compleja
+opt printlnArgumentCheck = true
   Linter -> Rules : PrintlnArgumentRule.check(program)
-  Rules --> Output : WARNING println-argument
-  Output --> Linter : notificación
+  Rules -> Rules : verifica identifier o literal
+  Rules --> Linter : WARNING println-argument si corresponde
+end
+
+opt readInputArgumentCheck = true
+  Linter -> Rules : ReadInputArgumentRule.check(program)
+  Rules -> Traversal : forEachExpression(program)
+  loop Cada statement, bloque y expresión anidada
+    Traversal -> Traversal : visita if/else, binarias y lecturas
+    alt ReadInput con Identifier o literal
+      Traversal --> Rules : expresión válida
+    else ReadInput con expresión compleja
+      Traversal --> Rules : prompt inválido y posición
+      Rules -> Output : ERROR read-input-argument
+      Output --> Linter : notificación
+    end
+  end
+end
 end
 
 Linter --> Consumer : List<LintNotification>

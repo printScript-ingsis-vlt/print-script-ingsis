@@ -1,4 +1,5 @@
 {
   "identifierFormat": "SNAKE_CASE",
-  "printlnArgumentCheck": true
+  "printlnArgumentCheck": true,
+  "readInputArgumentCheck": true
 }
