@@ -223,7 +223,10 @@ class StatementSemanticHandlersTest {
             constantsAllowed = true,
         )
 
-    private fun expressionAnalysis(context: SemanticContext): (Expr, String?) -> semantic.expressions.ExpressionAnalysis {
+    private fun expressionAnalysis(
+        context: SemanticContext,
+    ): (Expr, String?)
+    -> semantic.expressions.ExpressionAnalysis {
         val analyzer = expressionAnalyzer()
         return { expression, expectedType -> analyzer.analyze(expression, context, expectedType) }
     }

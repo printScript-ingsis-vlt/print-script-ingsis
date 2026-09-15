@@ -5,9 +5,9 @@ import semantic.handlers.expressions.BinaryExpressionSemanticHandler
 import semantic.handlers.expressions.BooleanLiteralSemanticHandler
 import semantic.handlers.expressions.IdentifierSemanticHandler
 import semantic.handlers.expressions.NumberLiteralSemanticHandler
+import semantic.handlers.expressions.StringLiteralSemanticHandler
 import semantic.handlers.expressions.read.ReadEnvExpressionSemanticHandler
 import semantic.handlers.expressions.read.ReadInputExpressionSemanticHandler
-import semantic.handlers.expressions.StringLiteralSemanticHandler
 import semantic.handlers.statements.AssignmentSemanticHandler
 import semantic.handlers.statements.IfStatementSemanticHandler
 import semantic.handlers.statements.PrintStatementSemanticHandler
