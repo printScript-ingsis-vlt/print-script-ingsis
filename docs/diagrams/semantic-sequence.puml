@@ -1,5 +1,5 @@
 @startuml
-title Semantic Analyzer - handlers, expresiones y tabla de simbolos
+title Semantic Analyzer — configuración por versión, handlers y contexto
 
 skinparam monochrome true
 skinparam shadowing false
@@ -7,6 +7,7 @@ autonumber
 
 actor Usuario
 participant "CLI / consumidor" as Consumer
+participant "SemanticConfigurations" as Configurations
 participant "SemanticAnalyzer" as Analyzer
 participant "Statement handlers" as StatementHandlers
 participant "ExpressionSemanticAnalyzer" as ExpressionAnalyzer
@@ -14,7 +15,10 @@ participant "Expression handlers" as ExpressionHandlers
 participant "SemanticContext" as Context
 participant "SemanticSymbolTable" as Symbols
 
-Usuario -> Consumer : solicita validar Program
+Usuario -> Consumer : solicita validar Program para una versión
+Consumer -> Configurations : selecciona v1_0 o v1_1
+Configurations --> Consumer : SemanticConfiguration
+Consumer -> Analyzer : SemanticAnalyzer(configuration)
 Consumer -> Analyzer : analyze(program)
 activate Analyzer
 Analyzer -> Context : crear contexto
@@ -23,17 +27,21 @@ Context -> Symbols : crear scope global
 loop por cada statement
   Analyzer -> StatementHandlers : canHandle(statement)
   StatementHandlers --> Analyzer : exactamente un handler
-  Analyzer -> StatementHandlers : validate(statement, context)
+  Analyzer -> StatementHandlers : validate(statement, context, analyzeExpression)
 
-  alt Declaración o asignación con expresión
-    StatementHandlers -> ExpressionAnalyzer : analyze(expression, context)
+  alt Declaración, asignación, impresión o if con expresión
+    StatementHandlers -> ExpressionAnalyzer : analyze(expression, context, expectedType?)
     ExpressionAnalyzer -> ExpressionHandlers : canHandle(expression)
     ExpressionHandlers --> ExpressionAnalyzer : handler concreto
 
     alt Expresión binaria
-      ExpressionHandlers -> ExpressionAnalyzer : analyzeChild(left / right)
+      ExpressionHandlers -> ExpressionAnalyzer : analyzeChild(left / right, null)
       ExpressionAnalyzer -> ExpressionHandlers : analiza hijos recursivamente
       ExpressionHandlers --> ExpressionAnalyzer : ExpressionAnalysis
+    else readInput o readEnv
+      ExpressionHandlers -> ExpressionAnalyzer : analyzeChild(argumento, "string")
+      ExpressionAnalyzer --> ExpressionHandlers : tipo y errores del argumento
+      ExpressionHandlers -> ExpressionHandlers : valida argumento string y expectedType
     else Identificador
       ExpressionHandlers -> Symbols : lookup(nombre)
       Symbols --> ExpressionHandlers : simbolo / no encontrado
@@ -50,6 +58,11 @@ loop por cada statement
       StatementHandlers -> Symbols : assign(nombre, valor conocido)
     else PrintStatement
       StatementHandlers -> StatementHandlers : sin cambio de estado
+    else IfStatement
+      StatementHandlers -> Context : copia contexto para cada rama
+      StatementHandlers -> Symbols : withScope() en cada copia
+      StatementHandlers -> Analyzer : valida/actualiza ramas mediante traversal
+      StatementHandlers -> Symbols : mergeConditionalBranches()
     end
   else Hay errores semánticos
     StatementHandlers --> Analyzer : List<SemanticError>
@@ -61,5 +74,16 @@ Analyzer --> Consumer : List<SemanticError>
 deactivate Analyzer
 
 note right of Symbols : Informacion estatica: tipo, inicializacion,\nmutabilidad y valor numerico conocido.\nNo contiene valores runtime.
-note right of Context : Los futuros handlers de if usaran\nenterScope() y exitScope() sobre la tabla.
+note right of Configurations
+v1_0 no habilita boolean, if, const,
+readInput ni readEnv.
+v1_1 registra los handlers nuevos, habilita const
+y les inyecta los tipos de la versión.
+end note
+note right of ExpressionAnalyzer
+expectedType se propaga desde el statement:
+declaración, asignación, printLn o if.
+readInput/readEnv no ejecutan I/O aquí;
+el interpreter convertirá el valor real en runtime.
+end note
 @enduml

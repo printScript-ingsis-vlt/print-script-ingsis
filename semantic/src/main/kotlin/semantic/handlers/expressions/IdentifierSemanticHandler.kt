@@ -13,7 +13,8 @@ class IdentifierSemanticHandler : ExpressionSemanticHandler {
     override fun analyze(
         expression: Expr,
         context: SemanticContext,
-        analyzeChild: (Expr) -> ExpressionAnalysis,
+        expectedType: String?,
+        analyzeChild: (Expr, String?) -> ExpressionAnalysis,
     ): ExpressionAnalysis {
         val identifier = expression as Identifier
         val symbol = context.symbols.lookup(identifier.name)

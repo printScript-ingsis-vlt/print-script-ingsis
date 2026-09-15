@@ -5,11 +5,10 @@ import ast.Stmt
 import result.SemanticError
 import semantic.SemanticContext
 import semantic.StatementSemanticHandler
-import semantic.expressions.ExpressionSemanticAnalyzer
+import semantic.StatementSemanticTraversal
+import semantic.expressions.ExpressionAnalysis
 
-class AssignmentSemanticHandler(
-    private val expressionAnalyzer: ExpressionSemanticAnalyzer,
-) : StatementSemanticHandler {
+class AssignmentSemanticHandler : StatementSemanticHandler {
     override fun canHandle(statement: Stmt): Boolean = statement is Assignment
 
     // 1 - Busca la variable destino
@@ -19,21 +18,29 @@ class AssignmentSemanticHandler(
     override fun validate(
         statement: Stmt,
         context: SemanticContext,
+        analyzeExpression: (ast.Expr, String?) -> ExpressionAnalysis,
+        traversal: StatementSemanticTraversal,
     ): List<SemanticError> {
         val assignment = statement as Assignment
         val symbol = context.symbols.lookup(assignment.name)
-        val valueAnalysis = expressionAnalyzer.analyze(assignment.value, context)
+        val valueAnalysis = analyzeExpression(assignment.value, symbol?.type)
         val errors = valueAnalysis.errors.toMutableList()
 
         if (symbol == null) {
             errors.add(0, SemanticError(assignment.position, "Variable '${assignment.name}' is not declared"))
-        } else if (valueAnalysis.type != null && valueAnalysis.type != symbol.type) {
-            errors.add(
-                SemanticError(
-                    assignment.position,
-                    "Cannot assign ${valueAnalysis.type} to ${symbol.type}",
-                ),
-            )
+        } else {
+            if (!symbol.mutable) {
+                errors.add(SemanticError(assignment.position, "Cannot reassign constant '${assignment.name}'"))
+            }
+
+            if (valueAnalysis.type != null && valueAnalysis.type != symbol.type) {
+                errors.add(
+                    SemanticError(
+                        assignment.position,
+                        "Cannot assign ${valueAnalysis.type} to ${symbol.type}",
+                    ),
+                )
+            }
         }
 
         return errors
@@ -42,10 +49,12 @@ class AssignmentSemanticHandler(
     override fun updateEnvironment(
         statement: Stmt,
         context: SemanticContext,
+        analyzeExpression: (ast.Expr, String?) -> ExpressionAnalysis,
+        traversal: StatementSemanticTraversal,
     ) {
         val assignment = statement as Assignment
         if (context.symbols.lookup(assignment.name) == null) return
-        val valueAnalysis = expressionAnalyzer.analyze(assignment.value, context)
+        val valueAnalysis = analyzeExpression(assignment.value, context.symbols.lookup(assignment.name)?.type)
         context.symbols.assign(assignment.name, valueAnalysis.knownNumberValue)
     }
 }

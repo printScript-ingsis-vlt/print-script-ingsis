@@ -16,6 +16,7 @@ class ExpressionSemanticAnalyzer(
     fun analyze(
         expression: Expr,
         context: SemanticContext,
+        expectedType: String? = null,
     ): ExpressionAnalysis {
         val candidates = handlers.filter { it.canHandle(expression) }
 
@@ -31,6 +32,8 @@ class ExpressionSemanticAnalyzer(
                     )
             }
         // ej: BinaryExpression -> analyzeChild -> Identifier, NumberLiteral
-        return handler.analyze(expression, context) { child -> analyze(child, context) }
+        return handler.analyze(expression, context, expectedType) { child, childExpectedType ->
+            analyze(child, context, childExpectedType)
+        }
     }
 }
