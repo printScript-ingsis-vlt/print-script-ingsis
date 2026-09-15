@@ -13,7 +13,26 @@ import interpreter.handlers.statements.PrintStatementHandler
 import interpreter.handlers.statements.VariableDeclarationHandler
 
 object InterpreterConfigurations {
+    // Versión 1.0: Únicamente las sentencias y expresiones base iniciales
     val v1_0 =
+        InterpreterConfiguration(
+            statementHandlers =
+                listOf(
+                    VariableDeclarationHandler(),
+                    AssignmentHandler(),
+                    PrintStatementHandler(),
+                ),
+            expressionHandlers =
+                listOf(
+                    NumberLiteralHandler(),
+                    StringLiteralHandler(),
+                    IdentifierHandler(),
+                    BinaryExpressionHandler(),
+                ),
+        )
+
+    // Versión 1.1: Incluye condicionales (IfElse), expresiones booleanas y lecturas I/O (ReadInput/ReadEnv)
+    val v1_1 =
         InterpreterConfiguration(
             statementHandlers =
                 listOf(
@@ -34,5 +53,5 @@ object InterpreterConfigurations {
                 ),
         )
 
-    val default = v1_0
+    val default = v1_1
 }
