@@ -73,10 +73,10 @@ class PrintScriptFormatter(
 
         lines.addAll(formatStatements(statement.thenBranch, indentationLevel + 1))
         statement.elseBranch?.let { elseBranch ->
-            lines.add("${indentation}} else {")
+            lines.add("$indentation} else {")
             lines.addAll(formatStatements(elseBranch, indentationLevel + 1))
         }
-        lines.add("${indentation}}")
+        lines.add("$indentation}")
 
         return lines
     }
