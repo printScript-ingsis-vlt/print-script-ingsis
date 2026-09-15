@@ -1,8 +1,9 @@
-package runtime
+package ast
 
 enum class PrintScriptVersion(val versionString: String) {
     V1_0("1.0"),
-    V1_1("1.1");
+    V1_1("1.1"),
+    ;
 
     companion object {
         fun fromString(version: String): PrintScriptVersion {
