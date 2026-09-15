@@ -9,6 +9,8 @@ import ast.IfStatement
 import ast.NumberLiteral
 import ast.PrintStatement
 import ast.Program
+import ast.ReadEnvExpression
+import ast.ReadInputExpression
 import ast.Stmt
 import ast.StringLiteral
 import ast.VariableDeclaration
@@ -88,12 +90,12 @@ class PrintScriptFormatter(
 
     /**
      * Formatea una declaración de variable.
-     * Ejemplo: let name: string = "Joe";
+     * Ejemplo: let name: string = "Joe"; o const name: string = "Joe";
      */
     private fun formatVariableDeclaration(stmt: VariableDeclaration): String {
         val sb = StringBuilder()
 
-        sb.append("let")
+        sb.append(if (stmt.mutable) "let" else "const")
         sb.append(" ")
         sb.append(stmt.name)
 
@@ -162,6 +164,8 @@ class PrintScriptFormatter(
             is BooleanLiteral -> expr.value.toString()
             is Identifier -> expr.name
             is BinaryExpression -> formatBinaryExpression(expr)
+            is ReadEnvExpression -> TODO()
+            is ReadInputExpression -> TODO()
         }
     }
 

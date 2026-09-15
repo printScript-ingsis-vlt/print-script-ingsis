@@ -52,6 +52,22 @@ class FormatterTest {
     }
 
     @Test
+    fun `format constant declaration`() {
+        val stmt =
+            VariableDeclaration(
+                name = "port",
+                type = "number",
+                value = NumberLiteral(8080.0, Position(1, 1)),
+                position = Position(1, 1),
+                mutable = false,
+            )
+
+        val result = formatter.format(Program(Position(1, 1), listOf(stmt)))
+
+        assertEquals("const port : number = 8080.0;", result)
+    }
+
+    @Test
     fun `format assignment statement`() {
         val stmt =
             Assignment(
