@@ -11,5 +11,7 @@ interface ExpressionHandler {
         expr: Expr,
         environment: Environment,
         evaluate: (Expr) -> Value,
+        inputProvider: InputProvider,
+        output: Output,
     ): Value
 }

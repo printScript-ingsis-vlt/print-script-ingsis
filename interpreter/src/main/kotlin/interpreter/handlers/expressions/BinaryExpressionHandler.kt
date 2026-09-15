@@ -3,6 +3,8 @@ package interpreter.handlers.expressions
 import ast.BinaryExpression
 import ast.Expr
 import interpreter.ExpressionHandler
+import interpreter.InputProvider
+import interpreter.Output
 import runtime.Environment
 import runtime.OperationType
 import runtime.valuedataclass.NumberValue
@@ -16,6 +18,8 @@ class BinaryExpressionHandler : ExpressionHandler {
         expr: Expr,
         environment: Environment,
         evaluate: (Expr) -> Value,
+        inputProvider: InputProvider,
+        output: Output,
     ): Value {
         val binary = expr as BinaryExpression
         val left = evaluate(binary.left)
