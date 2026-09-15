@@ -36,7 +36,6 @@ class LexCommand : CliktCommand(name = "lex") {
         val version = PrintScriptVersion.fromString(versionStr)
         val lexerConfig = LexerConfigurations.getConfiguration(version)
 
-        // 2. Instanciar el Lexer pasándole la configuración seleccionada
         val tokens =
             when (
                 val result =
@@ -50,6 +49,10 @@ class LexCommand : CliktCommand(name = "lex") {
                     null
                 }
             }
+
+        if (tokens != null) {
+            tokens.forEach(::println)
+        }
     }
 }
 
@@ -74,13 +77,11 @@ class FormatCommand : CliktCommand(
     help = "Formatea el archivo",
 ) {
     private val file by argument().file(mustExist = true)
-    private val versionStr by option("-v", "--version", "--lang-version", help = "Versión del lenguaje (1.0 o 1.1)")
-        .default("1.1")
     private val write by option("-w", "--write", help = "Sobreescribe el archivo").flag()
 
     override fun run() {
-        val version = PrintScriptVersion.fromString(versionStr)
-        val program = loadProgram(file, version) ?: return
+        // Carga el programa con la versión por defecto de PrintScript
+        val program = loadProgram(file, PrintScriptVersion.DEFAULT) ?: return
         val formatted = PrintScriptFormatter(FormattingConfigLoader.loadDefault()).format(program)
 
         if (write) {
@@ -97,12 +98,10 @@ class LintCommand : CliktCommand(
     help = "Corre el linter",
 ) {
     private val file by argument().file(mustExist = true)
-    private val versionStr by option("-v", "--version", "--lang-version", help = "Versión del lenguaje (1.0 o 1.1)")
-        .default("1.1")
 
     override fun run() {
-        val version = PrintScriptVersion.fromString(versionStr)
-        val program = loadProgram(file, version) ?: return
+        // Carga el programa con la versión por defecto de PrintScript
+        val program = loadProgram(file, PrintScriptVersion.DEFAULT) ?: return
         val notifications = PrintScriptLinter().lint(program)
 
         if (notifications.isEmpty()) {
