@@ -2,7 +2,7 @@ package semantic.handlers.expressions
 
 import ast.Identifier
 import ast.NumberLiteral
-import ast.ReadInputExpression
+import ast.ReadEnvExpression
 import ast.StringLiteral
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -10,16 +10,16 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import semantic.SemanticContext
 import semantic.expressions.ExpressionSemanticAnalyzer
-import semantic.handlers.expressions.read.ReadInputExpressionSemanticHandler
+import semantic.handlers.expressions.read.ReadEnvExpressionSemanticHandler
 import semantic.pos
 import semantic.symbols.SemanticSymbol
 
-class ReadInputExpressionSemanticHandlerTest {
+class ReadEnvExpressionSemanticHandlerTest {
     @Test
-    fun `readInput returns the type expected by its context`() {
+    fun `readEnv returns the type expected by its context`() {
         val analysis =
             analyzer().analyze(
-                ReadInputExpression(StringLiteral("Age", pos()), pos()),
+                ReadEnvExpression(StringLiteral("PORT", pos()), pos()),
                 SemanticContext(),
                 expectedType = "number",
             )
@@ -29,13 +29,13 @@ class ReadInputExpressionSemanticHandlerTest {
     }
 
     @Test
-    fun `readInput accepts a string identifier as its prompt`() {
+    fun `readEnv accepts a string identifier as its environment variable name`() {
         val context = SemanticContext()
-        context.symbols.declare("prompt", SemanticSymbol("string", initialized = true))
+        context.symbols.declare("variableName", SemanticSymbol("string", initialized = true))
 
         val analysis =
             analyzer().analyze(
-                ReadInputExpression(Identifier("prompt", pos()), pos()),
+                ReadEnvExpression(Identifier("variableName", pos()), pos()),
                 context,
                 expectedType = "boolean",
             )
@@ -45,63 +45,51 @@ class ReadInputExpressionSemanticHandlerTest {
     }
 
     @Test
-    fun `readInput rejects a non string prompt`() {
+    fun `readEnv rejects a non string environment variable name`() {
         val analysis =
             analyzer().analyze(
-                ReadInputExpression(NumberLiteral(1.0, pos()), pos()),
+                ReadEnvExpression(NumberLiteral(8080.0, pos()), pos()),
                 SemanticContext(),
                 expectedType = "string",
             )
 
         assertEquals("string", analysis.type)
-        assertEquals("readInput prompt must be a string", analysis.errors.single().message)
+        assertEquals(
+            "readEnv environment variable name must be a string",
+            analysis.errors.single().message,
+        )
     }
 
     @Test
-    fun `readInput requires a supported contextual type`() {
+    fun `readEnv requires a supported contextual type`() {
         val withoutContext =
             analyzer().analyze(
-                ReadInputExpression(StringLiteral("Value", pos()), pos()),
+                ReadEnvExpression(StringLiteral("PORT", pos()), pos()),
                 SemanticContext(),
             )
         val unsupportedContext =
             analyzer().analyze(
-                ReadInputExpression(StringLiteral("Value", pos()), pos()),
+                ReadEnvExpression(StringLiteral("PORT", pos()), pos()),
                 SemanticContext(),
                 expectedType = "unknown",
             )
 
         assertNull(withoutContext.type)
         assertEquals(
-            "readInput must be used where string, number, or boolean is expected",
+            "readEnv must be used where string, number, or boolean is expected",
             withoutContext.errors.single().message,
         )
         assertNull(unsupportedContext.type)
         assertEquals(
-            "readInput cannot produce values of type 'unknown'",
+            "readEnv cannot produce values of type 'unknown'",
             unsupportedContext.errors.single().message,
         )
     }
 
-    @Test
-    fun `readInput supports types enabled by its configuration`() {
-        val analysis =
-            analyzer(setOf("string", "number", "boolean", "float")).analyze(
-                ReadInputExpression(StringLiteral("Price", pos()), pos()),
-                SemanticContext(),
-                expectedType = "float",
-            )
-
-        assertEquals("float", analysis.type)
-        assertTrue(analysis.errors.isEmpty())
-    }
-
-    private fun analyzer(
-        supportedReturnTypes: Set<String> = setOf("string", "number", "boolean"),
-    ): ExpressionSemanticAnalyzer =
+    private fun analyzer(): ExpressionSemanticAnalyzer =
         ExpressionSemanticAnalyzer(
             listOf(
-                ReadInputExpressionSemanticHandler(supportedReturnTypes),
+                ReadEnvExpressionSemanticHandler(setOf("string", "number", "boolean")),
                 NumberLiteralSemanticHandler(),
                 StringLiteralSemanticHandler(),
                 IdentifierSemanticHandler(),

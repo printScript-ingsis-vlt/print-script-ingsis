@@ -5,6 +5,9 @@ import ast.IfStatement
 import ast.NumberLiteral
 import ast.PrintStatement
 import ast.Program
+import ast.ReadEnvExpression
+import ast.ReadInputExpression
+import ast.StringLiteral
 import ast.VariableDeclaration
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -70,6 +73,32 @@ class SemanticConfigurationsTest {
     }
 
     @Test
+    fun `v1 1 supports readInput and readEnv`() {
+        val program =
+            Program(
+                pos(),
+                listOf(
+                    VariableDeclaration(
+                        "name",
+                        "string",
+                        ReadInputExpression(StringLiteral("Name", pos()), pos()),
+                        pos(),
+                    ),
+                    VariableDeclaration(
+                        "enabled",
+                        "boolean",
+                        ReadEnvExpression(StringLiteral("ENABLED", pos()), pos()),
+                        pos(),
+                    ),
+                ),
+            )
+
+        val errors = SemanticAnalyzer(SemanticConfigurations.v1_1).analyze(program)
+
+        assertTrue(errors.isEmpty())
+    }
+
+    @Test
     fun `v1 0 does not register the boolean literal handler`() {
         val program = Program(pos(), listOf(PrintStatement(BooleanLiteral(true, pos()), pos())))
 
@@ -91,6 +120,22 @@ class SemanticConfigurationsTest {
             }
 
         assertEquals("No semantic statement handler found for: IfStatement", exception.message)
+    }
+
+    @Test
+    fun `v1 0 does not register readInput handler`() {
+        val program =
+            Program(
+                pos(),
+                listOf(PrintStatement(ReadInputExpression(StringLiteral("Name", pos()), pos()), pos())),
+            )
+
+        val exception =
+            assertThrows(IllegalStateException::class.java) {
+                SemanticAnalyzer(SemanticConfigurations.v1_0).analyze(program)
+            }
+
+        assertEquals("No semantic expression handler found for: ReadInputExpression", exception.message)
     }
 
     private fun validV10Program(): Program =

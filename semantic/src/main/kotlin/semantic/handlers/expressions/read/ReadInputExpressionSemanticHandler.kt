@@ -1,4 +1,4 @@
-package semantic.handlers.expressions
+package semantic.handlers.expressions.read
 
 import ast.Expr
 import ast.ReadInputExpression

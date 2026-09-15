@@ -5,6 +5,8 @@ import semantic.handlers.expressions.BinaryExpressionSemanticHandler
 import semantic.handlers.expressions.BooleanLiteralSemanticHandler
 import semantic.handlers.expressions.IdentifierSemanticHandler
 import semantic.handlers.expressions.NumberLiteralSemanticHandler
+import semantic.handlers.expressions.read.ReadEnvExpressionSemanticHandler
+import semantic.handlers.expressions.read.ReadInputExpressionSemanticHandler
 import semantic.handlers.expressions.StringLiteralSemanticHandler
 import semantic.handlers.statements.AssignmentSemanticHandler
 import semantic.handlers.statements.IfStatementSemanticHandler
@@ -63,6 +65,8 @@ object SemanticConfigurations {
                         BooleanLiteralSemanticHandler(),
                         IdentifierSemanticHandler(),
                         BinaryExpressionSemanticHandler(),
+                        ReadInputExpressionSemanticHandler(v1_1SupportedTypes),
+                        ReadEnvExpressionSemanticHandler(v1_1SupportedTypes),
                     ),
             )
 }
