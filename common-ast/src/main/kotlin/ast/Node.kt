@@ -20,6 +20,7 @@ data class VariableDeclaration(
     val type: String,
     val value: Expr?,
     override val position: Position,
+    val mutable: Boolean = true,
 ) : Stmt
 
 data class BinaryExpression(
@@ -55,5 +56,15 @@ data class Identifier(val name: String, override val position: Position) : Expr
 
 data class BooleanLiteral(
     val value: Boolean,
+    override val position: Position,
+) : Expr
+
+data class ReadInputExpression(
+    val prompt: Expr?,
+    override val position: Position,
+) : Expr
+
+data class ReadEnvExpression(
+    val envVariableName: Expr,
     override val position: Position,
 ) : Expr
