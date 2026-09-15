@@ -12,4 +12,5 @@ object Terminals {
     val IDENTIFIER = token(TokenType.IDENTIFIER, "identifier")
     val LEFT_PAREN = token(TokenType.LEFT_PAREN, "(")
     val RIGHT_PAREN = token(TokenType.RIGHT_PAREN, ")")
+    val BOOLEAN = token(TokenType.BOOLEAN, "boolean")
 }

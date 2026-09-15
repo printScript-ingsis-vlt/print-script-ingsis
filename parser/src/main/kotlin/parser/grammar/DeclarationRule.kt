@@ -2,6 +2,7 @@ package parser.grammar
 
 import ast.Expr
 import ast.VariableDeclaration
+import parser.engine.Choice
 import parser.engine.Rule
 import parser.engine.action
 import parser.engine.opt
@@ -13,15 +14,25 @@ import parser.grammar.Terminals.LET
 import parser.grammar.Terminals.SEMICOLON
 import token.Token
 
-/** let IDENTIFIER : IDENTIFIER ('=' expression)? ';' */
-class DeclarationRule(expression: Rule) : StatementRule {
+/**
+ * let IDENTIFIER : tipo ('=' expression)? ';'
+ *
+ * El tipo es IDENTIFIER por defecto (number, string como texto libre), más los tokens
+ * de [extraTypeTokens]
+ */
+class DeclarationRule(
+    expression: Rule,
+    extraTypeTokens: List<Rule> = emptyList(),
+) : StatementRule {
     private data class TypedName(val name: Token, val type: Token)
 
-    // IDENTIFIER ':' IDENTIFIER -> nombre y tipo ya extraídos, sin listas anidadas sueltas
+    private val type: Rule = Choice(listOf(IDENTIFIER) + extraTypeTokens)
+
+    // IDENTIFIER ':' tipo -> nombre y tipo ya extraídos, sin listas anidadas sueltas
     private val typedName: Rule =
-        action(seq(IDENTIFIER, COLON, IDENTIFIER)) { parts ->
-            val (name, _, type) = parts as List<*>
-            TypedName(name as Token, type as Token)
+        action(seq(IDENTIFIER, COLON, type)) { parts ->
+            val (name, _, declaredType) = parts as List<*>
+            TypedName(name as Token, declaredType as Token)
         }
 
     // '=' expression -> solo el valor, el '=' no aporta nada al AST
