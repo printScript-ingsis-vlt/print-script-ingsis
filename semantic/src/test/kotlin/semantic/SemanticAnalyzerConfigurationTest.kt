@@ -12,7 +12,7 @@ import result.SemanticError
 class SemanticAnalyzerConfigurationTest {
     @Test
     fun `fails when no handler supports a statement`() {
-        val analyzer = SemanticAnalyzer(listOf(UnsupportedStatementHandler()))
+        val analyzer = SemanticAnalyzer(SemanticConfiguration(listOf(UnsupportedStatementHandler())))
         val program =
             Program(
                 pos(),
@@ -29,7 +29,7 @@ class SemanticAnalyzerConfigurationTest {
 
     @Test
     fun `fails when multiple handlers support a statement`() {
-        val analyzer = SemanticAnalyzer(listOf(AnyStatementHandler(), AnyStatementHandler()))
+        val analyzer = SemanticAnalyzer(SemanticConfiguration(listOf(AnyStatementHandler(), AnyStatementHandler())))
         val program =
             Program(
                 pos(),

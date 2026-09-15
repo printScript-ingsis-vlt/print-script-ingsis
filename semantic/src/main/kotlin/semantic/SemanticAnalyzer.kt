@@ -6,8 +6,10 @@ import result.SemanticError
 
 /** Orquesta los handlers semánticos y conserva el contexto de un programa completo. */
 class SemanticAnalyzer(
-    private val statementHandlers: List<StatementSemanticHandler> = DefaultSemanticConfiguration.statementHandlers(),
+    configuration: SemanticConfiguration,
 ) {
+    private val statementHandlers = configuration.statementHandlers
+
     init {
         require(statementHandlers.isNotEmpty()) {
             "SemanticAnalyzer requires at least one statement handler"

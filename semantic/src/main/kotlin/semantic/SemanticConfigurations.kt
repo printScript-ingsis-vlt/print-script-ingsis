@@ -9,10 +9,20 @@ import semantic.handlers.statements.AssignmentSemanticHandler
 import semantic.handlers.statements.PrintStatementSemanticHandler
 import semantic.handlers.statements.VariableDeclarationSemanticHandler
 
-/** Construye la composición de handlers que soporta la versión actual del lenguaje.
- *  Cuando se implemente la 1.1 se hara otra version */
-object DefaultSemanticConfiguration {
-    fun statementHandlers(): List<StatementSemanticHandler> {
+/** Conjunto de handlers que define el comportamiento semántico de una versión. */
+data class SemanticConfiguration(
+    val statementHandlers: List<StatementSemanticHandler>,
+)
+
+/** Configuraciones de handlers semánticos disponibles por versión de PrintScript. */
+object SemanticConfigurations {
+    val v1_0: SemanticConfiguration
+        get() = SemanticConfiguration(statementHandlers())
+
+    val v1_1: SemanticConfiguration
+        get() = SemanticConfiguration(statementHandlers())
+
+    private fun statementHandlers(): List<StatementSemanticHandler> {
         val expressionAnalyzer = expressionAnalyzer()
 
         return listOf(
