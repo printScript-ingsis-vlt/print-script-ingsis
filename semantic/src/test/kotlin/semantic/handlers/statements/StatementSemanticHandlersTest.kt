@@ -109,6 +109,25 @@ class StatementSemanticHandlersTest {
     }
 
     @Test
+    fun `assignments to constants are rejected`() {
+        val context = SemanticContext()
+        context.symbols.declare(
+            "limit",
+            SemanticSymbol("number", initialized = true, mutable = false, knownNumberValue = 10.0),
+        )
+        val handler = AssignmentSemanticHandler()
+
+        val errors =
+            handler.validate(
+                Assignment("limit", NumberLiteral(20.0, pos()), pos()),
+                context,
+                expressionAnalysis(context),
+            )
+
+        assertEquals("Cannot reassign constant 'limit'", errors.single().message)
+    }
+
+    @Test
     fun `print validates its argument without modifying the symbol table`() {
         val context = SemanticContext()
         val handler = PrintStatementSemanticHandler()
@@ -162,7 +181,10 @@ class StatementSemanticHandlersTest {
         )
 
     private fun variableDeclarationHandler(): VariableDeclarationSemanticHandler =
-        VariableDeclarationSemanticHandler(setOf("number", "string", "boolean"))
+        VariableDeclarationSemanticHandler(
+            supportedTypes = setOf("number", "string", "boolean"),
+            constantsAllowed = true,
+        )
 
     private fun expressionAnalysis(context: SemanticContext): (Expr) -> semantic.expressions.ExpressionAnalysis {
         val analyzer = expressionAnalyzer()

@@ -11,6 +11,7 @@ import semantic.symbols.SemanticSymbol
 
 class VariableDeclarationSemanticHandler(
     private val supportedTypes: Set<String>,
+    private val constantsAllowed: Boolean,
 ) : StatementSemanticHandler {
     override fun canHandle(statement: Stmt): Boolean = statement is VariableDeclaration
 
@@ -26,6 +27,16 @@ class VariableDeclarationSemanticHandler(
         val declaration = statement as VariableDeclaration
         val valueAnalysis = declaration.value?.let(analyzeExpression)
         val errors = valueAnalysis?.errors.orEmpty().toMutableList()
+
+        // Decide si mutable false es valida para esa config
+        if (!constantsAllowed && !declaration.mutable) {
+            errors.add(
+                SemanticError(
+                    declaration.position,
+                    "Constants are not supported in this language version",
+                ),
+            )
+        }
 
         if (declaration.type !in supportedTypes) {
             errors.add(SemanticError(declaration.position, "Invalid type '${declaration.type}'"))

@@ -28,13 +28,19 @@ class AssignmentSemanticHandler : StatementSemanticHandler {
 
         if (symbol == null) {
             errors.add(0, SemanticError(assignment.position, "Variable '${assignment.name}' is not declared"))
-        } else if (valueAnalysis.type != null && valueAnalysis.type != symbol.type) {
-            errors.add(
-                SemanticError(
-                    assignment.position,
-                    "Cannot assign ${valueAnalysis.type} to ${symbol.type}",
-                ),
-            )
+        } else {
+            if (!symbol.mutable) {
+                errors.add(SemanticError(assignment.position, "Cannot reassign constant '${assignment.name}'"))
+            }
+
+            if (valueAnalysis.type != null && valueAnalysis.type != symbol.type) {
+                errors.add(
+                    SemanticError(
+                        assignment.position,
+                        "Cannot assign ${valueAnalysis.type} to ${symbol.type}",
+                    ),
+                )
+            }
         }
 
         return errors

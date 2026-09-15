@@ -24,7 +24,10 @@ object SemanticConfigurations {
             SemanticConfiguration(
                 statementHandlers =
                     listOf(
-                        VariableDeclarationSemanticHandler(setOf("number", "string")),
+                        VariableDeclarationSemanticHandler(
+                            supportedTypes = setOf("number", "string"),
+                            constantsAllowed = false,
+                        ),
                         AssignmentSemanticHandler(),
                         PrintStatementSemanticHandler(),
                     ),
@@ -42,7 +45,10 @@ object SemanticConfigurations {
             SemanticConfiguration(
                 statementHandlers =
                     listOf(
-                        VariableDeclarationSemanticHandler(setOf("number", "string", "boolean")),
+                        VariableDeclarationSemanticHandler(
+                            supportedTypes = setOf("number", "string", "boolean"),
+                            constantsAllowed = true,
+                        ),
                         AssignmentSemanticHandler(),
                         PrintStatementSemanticHandler(),
                         IfStatementSemanticHandler(),

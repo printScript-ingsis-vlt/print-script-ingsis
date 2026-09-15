@@ -28,6 +28,48 @@ class SemanticConfigurationsTest {
     }
 
     @Test
+    fun `v1 0 rejects constants`() {
+        val program =
+            Program(
+                pos(),
+                listOf(
+                    VariableDeclaration(
+                        name = "limit",
+                        type = "number",
+                        value = NumberLiteral(10.0, pos()),
+                        position = pos(),
+                        mutable = false,
+                    ),
+                ),
+            )
+
+        val errors = SemanticAnalyzer(SemanticConfigurations.v1_0).analyze(program)
+
+        assertEquals("Constants are not supported in this language version", errors.single().message)
+    }
+
+    @Test
+    fun `v1 1 accepts constants`() {
+        val program =
+            Program(
+                pos(),
+                listOf(
+                    VariableDeclaration(
+                        name = "limit",
+                        type = "number",
+                        value = NumberLiteral(10.0, pos()),
+                        position = pos(),
+                        mutable = false,
+                    ),
+                ),
+            )
+
+        val errors = SemanticAnalyzer(SemanticConfigurations.v1_1).analyze(program)
+
+        assertTrue(errors.isEmpty())
+    }
+
+    @Test
     fun `v1 0 does not register the boolean literal handler`() {
         val program = Program(pos(), listOf(PrintStatement(BooleanLiteral(true, pos()), pos())))
 
