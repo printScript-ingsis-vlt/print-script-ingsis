@@ -20,7 +20,7 @@ interface StatementSemanticHandler {
     fun validate(
         statement: Stmt,
         context: SemanticContext,
-        analyzeExpression: (Expr) -> ExpressionAnalysis,
+        analyzeExpression: (Expr, String?) -> ExpressionAnalysis,
         traversal: StatementSemanticTraversal,
     ): List<SemanticError>
 
@@ -28,7 +28,7 @@ interface StatementSemanticHandler {
     fun updateEnvironment(
         statement: Stmt,
         context: SemanticContext,
-        analyzeExpression: (Expr) -> ExpressionAnalysis,
+        analyzeExpression: (Expr, String?) -> ExpressionAnalysis,
         traversal: StatementSemanticTraversal,
     )
 }

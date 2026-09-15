@@ -25,6 +25,16 @@ class ExpressionSemanticAnalyzerTest {
     }
 
     @Test
+    fun `passes the expected type to the matching handler`() {
+        val handler = NumberLiteralHandler()
+        val analyzer = ExpressionSemanticAnalyzer(listOf(handler))
+
+        analyzer.analyze(NumberLiteral(42.0, pos()), context, expectedType = "number")
+
+        assertEquals("number", handler.receivedExpectedType)
+    }
+
+    @Test
     fun `allows a handler to analyze child expressions recursively`() {
         val analyzer =
             ExpressionSemanticAnalyzer(
@@ -83,14 +93,18 @@ class ExpressionSemanticAnalyzerTest {
     }
 
     private class NumberLiteralHandler : ExpressionSemanticHandler {
+        var receivedExpectedType: String? = null
+
         override fun canHandle(expression: Expr): Boolean = expression is NumberLiteral
 
         override fun analyze(
             expression: Expr,
             context: SemanticContext,
-            analyzeChild: (Expr) -> ExpressionAnalysis,
+            expectedType: String?,
+            analyzeChild: (Expr, String?) -> ExpressionAnalysis,
         ): ExpressionAnalysis {
             val literal = expression as NumberLiteral
+            receivedExpectedType = expectedType
 
             return ExpressionAnalysis(
                 type = "number",
@@ -106,11 +120,12 @@ class ExpressionSemanticAnalyzerTest {
         override fun analyze(
             expression: Expr,
             context: SemanticContext,
-            analyzeChild: (Expr) -> ExpressionAnalysis,
+            expectedType: String?,
+            analyzeChild: (Expr, String?) -> ExpressionAnalysis,
         ): ExpressionAnalysis {
             val binary = expression as BinaryExpression
-            val left = analyzeChild(binary.left)
-            val right = analyzeChild(binary.right)
+            val left = analyzeChild(binary.left, null)
+            val right = analyzeChild(binary.right, null)
             val knownNumberValue =
                 if (
                     binary.operator == "+" &&

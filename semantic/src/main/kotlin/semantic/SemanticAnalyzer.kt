@@ -27,7 +27,9 @@ class SemanticAnalyzer(
         val errors = mutableListOf<SemanticError>()
         for (statement in statements) {
             val handler = handlerFor(statement)
-            val analyzeExpression = { expression: ast.Expr -> expressionAnalyzer.analyze(expression, context) }
+            val analyzeExpression = { expression: ast.Expr, expectedType: String? ->
+                expressionAnalyzer.analyze(expression, context, expectedType)
+            }
             val statementErrors = handler.validate(statement, context, analyzeExpression, this)
 
             errors.addAll(statementErrors)
@@ -45,7 +47,9 @@ class SemanticAnalyzer(
     ) {
         for (statement in statements) {
             val handler = handlerFor(statement)
-            val analyzeExpression = { expression: ast.Expr -> expressionAnalyzer.analyze(expression, context) }
+            val analyzeExpression = { expression: ast.Expr, expectedType: String? ->
+                expressionAnalyzer.analyze(expression, context, expectedType)
+            }
             handler.updateEnvironment(statement, context, analyzeExpression, this)
         }
     }

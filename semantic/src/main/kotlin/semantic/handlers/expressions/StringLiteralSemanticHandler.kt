@@ -13,7 +13,8 @@ class StringLiteralSemanticHandler : ExpressionSemanticHandler {
     override fun analyze(
         expression: Expr,
         context: SemanticContext,
-        analyzeChild: (Expr) -> ExpressionAnalysis,
+        expectedType: String?,
+        analyzeChild: (Expr, String?) -> ExpressionAnalysis,
     ): ExpressionAnalysis =
         ExpressionAnalysis(
             type = "string",

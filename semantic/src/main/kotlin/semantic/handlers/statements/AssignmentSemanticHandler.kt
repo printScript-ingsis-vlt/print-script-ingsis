@@ -18,12 +18,12 @@ class AssignmentSemanticHandler : StatementSemanticHandler {
     override fun validate(
         statement: Stmt,
         context: SemanticContext,
-        analyzeExpression: (ast.Expr) -> ExpressionAnalysis,
+        analyzeExpression: (ast.Expr, String?) -> ExpressionAnalysis,
         traversal: StatementSemanticTraversal,
     ): List<SemanticError> {
         val assignment = statement as Assignment
         val symbol = context.symbols.lookup(assignment.name)
-        val valueAnalysis = analyzeExpression(assignment.value)
+        val valueAnalysis = analyzeExpression(assignment.value, symbol?.type)
         val errors = valueAnalysis.errors.toMutableList()
 
         if (symbol == null) {
@@ -49,12 +49,12 @@ class AssignmentSemanticHandler : StatementSemanticHandler {
     override fun updateEnvironment(
         statement: Stmt,
         context: SemanticContext,
-        analyzeExpression: (ast.Expr) -> ExpressionAnalysis,
+        analyzeExpression: (ast.Expr, String?) -> ExpressionAnalysis,
         traversal: StatementSemanticTraversal,
     ) {
         val assignment = statement as Assignment
         if (context.symbols.lookup(assignment.name) == null) return
-        val valueAnalysis = analyzeExpression(assignment.value)
+        val valueAnalysis = analyzeExpression(assignment.value, context.symbols.lookup(assignment.name)?.type)
         context.symbols.assign(assignment.name, valueAnalysis.knownNumberValue)
     }
 }

@@ -14,19 +14,19 @@ class PrintStatementSemanticHandler : StatementSemanticHandler {
     override fun validate(
         statement: Stmt,
         context: SemanticContext,
-        analyzeExpression: (ast.Expr) -> ExpressionAnalysis,
+        analyzeExpression: (ast.Expr, String?) -> ExpressionAnalysis,
         traversal: StatementSemanticTraversal,
     ): List<SemanticError> {
         val printStatement = statement as PrintStatement
 
-        return analyzeExpression(printStatement.argument).errors
+        return analyzeExpression(printStatement.argument, "string").errors
     }
 
     // No actualiza el entorno
     override fun updateEnvironment(
         statement: Stmt,
         context: SemanticContext,
-        analyzeExpression: (ast.Expr) -> ExpressionAnalysis,
+        analyzeExpression: (ast.Expr, String?) -> ExpressionAnalysis,
         traversal: StatementSemanticTraversal,
     ) = Unit
 }

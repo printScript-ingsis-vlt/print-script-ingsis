@@ -17,7 +17,7 @@ class IfStatementSemanticHandler : StatementSemanticHandler {
     override fun validate(
         statement: Stmt,
         context: SemanticContext,
-        analyzeExpression: (Expr) -> ExpressionAnalysis,
+        analyzeExpression: (Expr, String?) -> ExpressionAnalysis,
         traversal: StatementSemanticTraversal,
     ): List<SemanticError> {
         val ifStatement = statement as IfStatement
@@ -36,7 +36,7 @@ class IfStatementSemanticHandler : StatementSemanticHandler {
     override fun updateEnvironment(
         statement: Stmt,
         context: SemanticContext,
-        analyzeExpression: (Expr) -> ExpressionAnalysis,
+        analyzeExpression: (Expr, String?) -> ExpressionAnalysis,
         traversal: StatementSemanticTraversal,
     ) {
         val ifStatement = statement as IfStatement
@@ -58,7 +58,7 @@ class IfStatementSemanticHandler : StatementSemanticHandler {
     // exige que la condicion sea un boolean
     private fun validateCondition(
         statement: IfStatement,
-        analyzeExpression: (Expr) -> ExpressionAnalysis,
+        analyzeExpression: (Expr, String?) -> ExpressionAnalysis,
     ): List<SemanticError> {
         val condition = statement.condition
         if (condition !is Identifier) {
@@ -66,7 +66,7 @@ class IfStatementSemanticHandler : StatementSemanticHandler {
         }
 
         // existe un tipo pero no es boolean
-        val analysis = analyzeExpression(condition)
+        val analysis = analyzeExpression(condition, "boolean")
         val errors = analysis.errors.toMutableList()
         if (analysis.type != null && analysis.type != "boolean") {
             errors.add(SemanticError(condition.position, "If condition variable '${condition.name}' must be boolean"))

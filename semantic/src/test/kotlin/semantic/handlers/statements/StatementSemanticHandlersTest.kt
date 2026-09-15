@@ -4,6 +4,7 @@ import ast.Assignment
 import ast.BooleanLiteral
 import ast.Expr
 import ast.Identifier
+import ast.IfStatement
 import ast.NumberLiteral
 import ast.PrintStatement
 import ast.StringLiteral
@@ -16,6 +17,7 @@ import result.SemanticError
 import semantic.SemanticContext
 import semantic.StatementSemanticHandler
 import semantic.StatementSemanticTraversal
+import semantic.expressions.ExpressionAnalysis
 import semantic.expressions.ExpressionSemanticAnalyzer
 import semantic.handlers.expressions.BinaryExpressionSemanticHandler
 import semantic.handlers.expressions.BooleanLiteralSemanticHandler
@@ -169,6 +171,41 @@ class StatementSemanticHandlersTest {
         assertEquals("Cannot assign number to boolean", errors.single().message)
     }
 
+    @Test
+    fun `statements pass their contextual expected type to expression analysis`() {
+        val context = SemanticContext()
+        context.symbols.declare("count", SemanticSymbol("number", initialized = true))
+        context.symbols.declare("enabled", SemanticSymbol("boolean", initialized = true))
+        val receivedExpectedTypes = mutableListOf<String?>()
+        val analyzeExpression = { _: Expr, expectedType: String? ->
+            receivedExpectedTypes.add(expectedType)
+            ExpressionAnalysis(type = expectedType, errors = emptyList())
+        }
+
+        variableDeclarationHandler().validate(
+            VariableDeclaration("message", "string", StringLiteral("text", pos()), pos()),
+            context,
+            analyzeExpression,
+        )
+        AssignmentSemanticHandler().validate(
+            Assignment("count", NumberLiteral(2.0, pos()), pos()),
+            context,
+            analyzeExpression,
+        )
+        PrintStatementSemanticHandler().validate(
+            PrintStatement(StringLiteral("text", pos()), pos()),
+            context,
+            analyzeExpression,
+        )
+        IfStatementSemanticHandler().validate(
+            IfStatement(Identifier("enabled", pos()), emptyList(), null, pos()),
+            context,
+            analyzeExpression,
+        )
+
+        assertEquals(listOf("string", "number", "string", "boolean"), receivedExpectedTypes)
+    }
+
     private fun expressionAnalyzer(): ExpressionSemanticAnalyzer =
         ExpressionSemanticAnalyzer(
             listOf(
@@ -186,21 +223,21 @@ class StatementSemanticHandlersTest {
             constantsAllowed = true,
         )
 
-    private fun expressionAnalysis(context: SemanticContext): (Expr) -> semantic.expressions.ExpressionAnalysis {
+    private fun expressionAnalysis(context: SemanticContext): (Expr, String?) -> semantic.expressions.ExpressionAnalysis {
         val analyzer = expressionAnalyzer()
-        return { expression -> analyzer.analyze(expression, context) }
+        return { expression, expectedType -> analyzer.analyze(expression, context, expectedType) }
     }
 
     private fun StatementSemanticHandler.validate(
         statement: ast.Stmt,
         context: SemanticContext,
-        analyzeExpression: (Expr) -> semantic.expressions.ExpressionAnalysis,
+        analyzeExpression: (Expr, String?) -> semantic.expressions.ExpressionAnalysis,
     ): List<SemanticError> = validate(statement, context, analyzeExpression, NoOpStatementSemanticTraversal)
 
     private fun StatementSemanticHandler.updateEnvironment(
         statement: ast.Stmt,
         context: SemanticContext,
-        analyzeExpression: (Expr) -> semantic.expressions.ExpressionAnalysis,
+        analyzeExpression: (Expr, String?) -> semantic.expressions.ExpressionAnalysis,
     ) {
         updateEnvironment(statement, context, analyzeExpression, NoOpStatementSemanticTraversal)
     }

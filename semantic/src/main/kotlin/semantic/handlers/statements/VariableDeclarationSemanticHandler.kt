@@ -21,11 +21,11 @@ class VariableDeclarationSemanticHandler(
     override fun validate(
         statement: Stmt,
         context: SemanticContext,
-        analyzeExpression: (ast.Expr) -> ExpressionAnalysis,
+        analyzeExpression: (ast.Expr, String?) -> ExpressionAnalysis,
         traversal: StatementSemanticTraversal,
     ): List<SemanticError> {
         val declaration = statement as VariableDeclaration
-        val valueAnalysis = declaration.value?.let(analyzeExpression)
+        val valueAnalysis = declaration.value?.let { value -> analyzeExpression(value, declaration.type) }
         val errors = valueAnalysis?.errors.orEmpty().toMutableList()
 
         // Decide si mutable false es valida para esa config
@@ -56,11 +56,11 @@ class VariableDeclarationSemanticHandler(
     override fun updateEnvironment(
         statement: Stmt,
         context: SemanticContext,
-        analyzeExpression: (ast.Expr) -> ExpressionAnalysis,
+        analyzeExpression: (ast.Expr, String?) -> ExpressionAnalysis,
         traversal: StatementSemanticTraversal,
     ) {
         val declaration = statement as VariableDeclaration
-        val valueAnalysis = declaration.value?.let(analyzeExpression)
+        val valueAnalysis = declaration.value?.let { value -> analyzeExpression(value, declaration.type) }
         context.symbols.declare(
             declaration.name,
             SemanticSymbol(

@@ -19,13 +19,16 @@ data class SemanticConfiguration(
 
 /** Configuraciones de handlers semánticos disponibles por versión de PrintScript. */
 object SemanticConfigurations {
+    private val v1_0SupportedTypes = setOf("number", "string")
+    private val v1_1SupportedTypes = setOf("number", "string", "boolean")
+
     val v1_0: SemanticConfiguration
         get() =
             SemanticConfiguration(
                 statementHandlers =
                     listOf(
                         VariableDeclarationSemanticHandler(
-                            supportedTypes = setOf("number", "string"),
+                            supportedTypes = v1_0SupportedTypes,
                             constantsAllowed = false,
                         ),
                         AssignmentSemanticHandler(),
@@ -46,7 +49,7 @@ object SemanticConfigurations {
                 statementHandlers =
                     listOf(
                         VariableDeclarationSemanticHandler(
-                            supportedTypes = setOf("number", "string", "boolean"),
+                            supportedTypes = v1_1SupportedTypes,
                             constantsAllowed = true,
                         ),
                         AssignmentSemanticHandler(),

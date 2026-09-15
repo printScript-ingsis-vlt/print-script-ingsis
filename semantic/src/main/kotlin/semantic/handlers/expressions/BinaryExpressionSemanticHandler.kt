@@ -15,11 +15,12 @@ class BinaryExpressionSemanticHandler : ExpressionSemanticHandler {
     override fun analyze(
         expression: Expr,
         context: SemanticContext,
-        analyzeChild: (Expr) -> ExpressionAnalysis,
+        expectedType: String?,
+        analyzeChild: (Expr, String?) -> ExpressionAnalysis,
     ): ExpressionAnalysis {
         val binary = expression as BinaryExpression
-        val left = analyzeChild(binary.left)
-        val right = analyzeChild(binary.right)
+        val left = analyzeChild(binary.left, null)
+        val right = analyzeChild(binary.right, null)
         val operation = operationTypeOrNull(binary.operator)
         val errors = mutableListOf<SemanticError>()
 

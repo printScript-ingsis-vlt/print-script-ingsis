@@ -56,14 +56,14 @@ class SemanticAnalyzerConfigurationTest {
         override fun validate(
             statement: Stmt,
             context: SemanticContext,
-            analyzeExpression: (ast.Expr) -> ExpressionAnalysis,
+            analyzeExpression: (ast.Expr, String?) -> ExpressionAnalysis,
             traversal: StatementSemanticTraversal,
         ): List<SemanticError> = emptyList()
 
         override fun updateEnvironment(
             statement: Stmt,
             context: SemanticContext,
-            analyzeExpression: (ast.Expr) -> ExpressionAnalysis,
+            analyzeExpression: (ast.Expr, String?) -> ExpressionAnalysis,
             traversal: StatementSemanticTraversal,
         ) = Unit
     }
@@ -74,14 +74,14 @@ class SemanticAnalyzerConfigurationTest {
         override fun validate(
             statement: Stmt,
             context: SemanticContext,
-            analyzeExpression: (ast.Expr) -> ExpressionAnalysis,
+            analyzeExpression: (ast.Expr, String?) -> ExpressionAnalysis,
             traversal: StatementSemanticTraversal,
         ): List<SemanticError> = emptyList()
 
         override fun updateEnvironment(
             statement: Stmt,
             context: SemanticContext,
-            analyzeExpression: (ast.Expr) -> ExpressionAnalysis,
+            analyzeExpression: (ast.Expr, String?) -> ExpressionAnalysis,
             traversal: StatementSemanticTraversal,
         ) = Unit
     }
