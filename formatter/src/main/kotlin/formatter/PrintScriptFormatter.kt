@@ -2,6 +2,7 @@ package formatter
 
 import ast.Assignment
 import ast.BinaryExpression
+import ast.BooleanLiteral
 import ast.Expr
 import ast.Identifier
 import ast.IfStatement
@@ -62,7 +63,7 @@ class PrintScriptFormatter(
         return listOf(indentation(indentationLevel) + formattedStatement)
     }
 
-    // a partir del nivel de indentacion de donde comienza el if devuelve una lista de todas las lineas del if formateadas
+    // A partir del nivel del if, devuelve todas sus líneas formateadas.
     private fun formatIfStatement(
         statement: IfStatement,
         indentationLevel: Int,
@@ -158,9 +159,9 @@ class PrintScriptFormatter(
         return when (expr) {
             is NumberLiteral -> expr.value.toString()
             is StringLiteral -> "\"${expr.value}\""
+            is BooleanLiteral -> expr.value.toString()
             is Identifier -> expr.name
             is BinaryExpression -> formatBinaryExpression(expr)
-            else -> throw IllegalArgumentException("Unknown expression type: ${expr.javaClass.simpleName}")
         }
     }
 

@@ -2,6 +2,7 @@ package formatter
 
 import ast.Assignment
 import ast.BinaryExpression
+import ast.BooleanLiteral
 import ast.Identifier
 import ast.IfStatement
 import ast.NumberLiteral
@@ -99,6 +100,16 @@ class FormatterTest {
         val result = formatter.format(program)
 
         assertTrue(result.contains("println(x);"))
+    }
+
+    @Test
+    fun `format boolean literal`() {
+        val stmt = PrintStatement(BooleanLiteral(true, Position(1, 1)), Position(1, 1))
+        val program = Program(Position(1, 1), listOf(stmt))
+
+        val result = formatter.format(program)
+
+        assertEquals("println(true);", result)
     }
 
     @Test
