@@ -12,19 +12,14 @@ class StreamLexer(
     reader: Reader,
     private val matchers: List<TokenMatcher> = LexerMatcherFactory.create(LexerConfigurations.default),
 ) : Lexer {
-    constructor(
-        reader: Reader,
-        keywords: Map<String, TokenType>,
-        singleCharTokens: Map<Char, TokenType>,
-    ) : this(
+    constructor(reader: Reader, config: LexerConfiguration) : this(
         reader = reader,
-        matchers =
-            LexerMatcherFactory.create(
-                LexerConfiguration(
-                    keywords = keywords,
-                    operators = singleCharTokens.mapKeys { (character, _) -> character.toString() },
-                ),
-            ),
+        matchers = LexerMatcherFactory.create(config),
+    )
+
+    constructor(reader: Reader) : this(
+        reader = reader,
+        config = LexerConfigurations.default,
     )
 
     private val cursor = LexerCursor(reader)
