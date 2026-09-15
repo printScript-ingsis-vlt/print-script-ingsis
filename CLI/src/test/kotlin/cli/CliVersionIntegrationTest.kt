@@ -39,4 +39,38 @@ class CliVersionIntegrationTest {
 
         assertEquals(0, result.statusCode)
     }
+
+    @Test
+    fun `ejecucion 1_1 con const, if-else y boolean combinados produce el output esperado`() {
+        val script =
+            File(tempDir, "combinado.ps").apply {
+                writeText(
+                    "const enabled: boolean = true;\n" +
+                        "if (enabled) {\n" +
+                        "    println(\"activo\");\n" +
+                        "} else {\n" +
+                        "    println(\"inactivo\");\n" +
+                        "}",
+                )
+            }
+
+        val cmd = InterpretCommand()
+        val result = cmd.test(script.absolutePath)
+
+        assertEquals(0, result.statusCode)
+    }
+
+    @Test
+    fun `reasignar una const en 1_1 reporta error semantico sin crashear`() {
+        val script =
+            File(tempDir, "const_reasignada.ps").apply {
+                writeText("const x: number = 5;\nx = 10;")
+            }
+
+        val cmd = InterpretCommand()
+        val result = cmd.test(script.absolutePath)
+
+        assertTrue(result.stderr.contains("Error semántico"))
+        assertTrue(result.stderr.contains("Cannot reassign constant"))
+    }
 }
