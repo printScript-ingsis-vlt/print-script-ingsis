@@ -104,11 +104,20 @@ class PrintScriptFormatter(
         indentationLevel: Int,
     ): List<String> {
         val indentation = indentation(indentationLevel)
-        val lines = mutableListOf("${indentation}if (${formatExpression(statement.condition)}) {")
+        val braceOnNewLine = rules.ifBraceOnNewLine == true
+        val ifHeader = "${indentation}if (${formatExpression(statement.condition)})" + if (braceOnNewLine) "" else " {"
+        val lines = mutableListOf(ifHeader)
+        if (braceOnNewLine) lines.add("$indentation{")
 
         lines.addAll(formatStatements(statement.thenBranch, indentationLevel + 1))
         statement.elseBranch?.let { elseBranch ->
-            lines.add("$indentation} else {")
+            if (braceOnNewLine) {
+                lines.add("$indentation}")
+                lines.add("${indentation}else")
+                lines.add("$indentation{")
+            } else {
+                lines.add("$indentation} else {")
+            }
             lines.addAll(formatStatements(elseBranch, indentationLevel + 1))
         }
         lines.add("$indentation}")

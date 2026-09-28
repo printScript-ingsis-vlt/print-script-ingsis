@@ -301,7 +301,7 @@ class FormatterTest {
         assertEquals(
             """
             if (enabled) {
-                println("on");
+              println("on");
             }
             """.trimIndent(),
             result,
@@ -331,7 +331,7 @@ class FormatterTest {
         assertEquals(
             """
             if (enabled) {
-                const port : number = readEnv("PORT");
+              const port : number = readEnv("PORT");
             }
             """.trimIndent(),
             result,
@@ -353,9 +353,9 @@ class FormatterTest {
         assertEquals(
             """
             if (enabled) {
-                println("on");
+              println("on");
             } else {
-                println("off");
+              println("off");
             }
             """.trimIndent(),
             result,
@@ -384,9 +384,9 @@ class FormatterTest {
         assertEquals(
             """
             if (primary) {
-                if (secondary) {
-                    println("nested");
-                }
+              if (secondary) {
+                println("nested");
+              }
             }
             """.trimIndent(),
             result,
@@ -410,6 +410,58 @@ class FormatterTest {
             """
             if (enabled) {
               println("on");
+            }
+            """.trimIndent(),
+            result,
+        )
+    }
+
+    @Test
+    fun `format if block with brace on new line`() {
+        val formatter = PrintScriptFormatter(FormattingRules(ifBraceOnNewLine = true))
+        val statement =
+            IfStatement(
+                condition = Identifier("something", Position(1, 1)),
+                thenBranch = listOf(PrintStatement(StringLiteral("Entered if", Position(1, 1)), Position(1, 1))),
+                elseBranch = null,
+                position = Position(1, 1),
+            )
+
+        val result = formatter.format(emptyList(), Program(Position(1, 1), listOf(statement)))
+
+        assertEquals(
+            """
+            if (something)
+            {
+              println("Entered if");
+            }
+            """.trimIndent(),
+            result,
+        )
+    }
+
+    @Test
+    fun `format if else block with brace on new line`() {
+        val formatter = PrintScriptFormatter(FormattingRules(ifBraceOnNewLine = true))
+        val statement =
+            IfStatement(
+                condition = Identifier("something", Position(1, 1)),
+                thenBranch = listOf(PrintStatement(StringLiteral("on", Position(1, 1)), Position(1, 1))),
+                elseBranch = listOf(PrintStatement(StringLiteral("off", Position(1, 1)), Position(1, 1))),
+                position = Position(1, 1),
+            )
+
+        val result = formatter.format(emptyList(), Program(Position(1, 1), listOf(statement)))
+
+        assertEquals(
+            """
+            if (something)
+            {
+              println("on");
+            }
+            else
+            {
+              println("off");
             }
             """.trimIndent(),
             result,
