@@ -35,9 +35,10 @@ class PrintScriptFormatter(
     ): List<String> {
         val lines = mutableListOf<String>()
 
+        val newlinesBeforePrintln = rules.newlinesBeforePrintln ?: FormattingRules.DEFAULT_NEWLINES_BEFORE_PRINTLN
         for ((index, stmt) in statements.withIndex()) {
-            if (index > 0 && stmt is PrintStatement && rules.newlinesBeforePrintln > 0) {
-                repeat(rules.newlinesBeforePrintln) { lines.add("") }
+            if (index > 0 && stmt is PrintStatement && newlinesBeforePrintln > 0) {
+                repeat(newlinesBeforePrintln) { lines.add("") }
             }
             lines.addAll(formatStatement(stmt, indentationLevel))
         }
@@ -84,7 +85,7 @@ class PrintScriptFormatter(
 
     private fun indentation(level: Int): String {
         require(level >= 0) { "Indentation level cannot be negative" }
-        return " ".repeat(level * rules.indentationSpaces)
+        return " ".repeat(level * (rules.indentationSpaces ?: FormattingRules.DEFAULT_INDENTATION_SPACES))
     }
 
     /**
@@ -99,15 +100,15 @@ class PrintScriptFormatter(
         sb.append(stmt.name)
 
         // Espacio alrededor de ':'
-        if (rules.spaceBeforeColon) sb.append(" ")
+        if (rules.spaceBeforeColon ?: true) sb.append(" ")
         sb.append(":")
-        if (rules.spaceAfterColon) sb.append(" ")
+        if (rules.spaceAfterColon ?: true) sb.append(" ")
 
         sb.append(stmt.type)
 
         // Valor (si existe)
         stmt.value?.let { value ->
-            if (rules.spaceAroundEqual) {
+            if (rules.spaceAroundEqual ?: true) {
                 sb.append(" = ")
             } else {
                 sb.append("=")
@@ -129,7 +130,7 @@ class PrintScriptFormatter(
 
         sb.append(stmt.name)
 
-        if (rules.spaceAroundEqual) {
+        if (rules.spaceAroundEqual ?: true) {
             sb.append(" = ")
         } else {
             sb.append("=")
