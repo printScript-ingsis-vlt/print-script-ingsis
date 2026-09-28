@@ -64,7 +64,8 @@ class PrintScriptFormatter(
         val newlinesBeforePrintln = rules.newlinesBeforePrintln ?: FormattingRules.DEFAULT_NEWLINES_BEFORE_PRINTLN
         for ((index, stmt) in statements.withIndex()) {
             // Solo separa un println de OTRO println anterior, no de cualquier statement.
-            if (index > 0 && stmt is PrintStatement && statements[index - 1] is PrintStatement && newlinesBeforePrintln > 0) {
+            val followsAnotherPrintln = index > 0 && stmt is PrintStatement && statements[index - 1] is PrintStatement
+            if (followsAnotherPrintln && newlinesBeforePrintln > 0) {
                 repeat(newlinesBeforePrintln) { lines.add("") }
             }
             lines.addAll(formatStatement(stmt, indentationLevel))
@@ -190,7 +191,13 @@ class PrintScriptFormatter(
      */
     private fun formatExpression(expr: Expr): String {
         return when (expr) {
-            is NumberLiteral -> expr.value.toString()
+            // sin ".0" para enteros (5.0 -> "5"), tal cual para decimales reales (5.5 -> "5.5")
+            is NumberLiteral ->
+                if (expr.value == expr.value.toLong().toDouble()) {
+                    expr.value.toLong().toString()
+                } else {
+                    expr.value.toString()
+                }
             is StringLiteral -> "\"${expr.value}\""
             is BooleanLiteral -> expr.value.toString()
             is Identifier -> expr.name

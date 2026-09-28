@@ -41,7 +41,7 @@ class FormatterTest {
 
         val result = formatter.format(emptyList(), program)
 
-        assertTrue(result.contains("let x : number = 5.0;"))
+        assertTrue(result.contains("let x : number = 5;"))
     }
 
     @Test
@@ -73,7 +73,7 @@ class FormatterTest {
 
         val result = formatter.format(emptyList(), Program(Position(1, 1), listOf(stmt)))
 
-        assertEquals("const port : number = 8080.0;", result)
+        assertEquals("const port : number = 8080;", result)
     }
 
     @Test
@@ -88,7 +88,7 @@ class FormatterTest {
 
         val result = formatter.format(emptyList(), program)
 
-        assertTrue(result.contains("x = 10.0;"))
+        assertTrue(result.contains("x = 10;"))
     }
 
     @Test
@@ -111,6 +111,26 @@ class FormatterTest {
         val result = formatter.format(emptyList(), program)
 
         assertTrue(result.contains("result = a + b;"))
+    }
+
+    @Test
+    fun `format number literal without trailing zero for whole numbers`() {
+        val stmt = PrintStatement(NumberLiteral(8080.0, Position(1, 1)), Position(1, 1))
+        val program = Program(Position(1, 1), listOf(stmt))
+
+        val result = formatter.format(emptyList(), program)
+
+        assertEquals("println(8080);", result)
+    }
+
+    @Test
+    fun `format number literal keeps decimals when they are not zero`() {
+        val stmt = PrintStatement(NumberLiteral(5.5, Position(1, 1)), Position(1, 1))
+        val program = Program(Position(1, 1), listOf(stmt))
+
+        val result = formatter.format(emptyList(), program)
+
+        assertEquals("println(5.5);", result)
     }
 
     @Test
@@ -187,7 +207,7 @@ class FormatterTest {
 
         val result = formatter.format(emptyList(), program)
 
-        assertTrue(result.contains("println(5.0 + 3.0);"))
+        assertTrue(result.contains("println(5 + 3);"))
     }
 
     @Test
@@ -231,8 +251,8 @@ class FormatterTest {
 
         val result = formatter.format(emptyList(), program)
 
-        assertTrue(result.contains("let x : number = 5.0;"))
-        assertTrue(result.contains("x = 10.0;"))
+        assertTrue(result.contains("let x : number = 5;"))
+        assertTrue(result.contains("x = 10;"))
         assertTrue(result.contains("println(x);"))
     }
 
@@ -251,8 +271,8 @@ class FormatterTest {
 
         val result = formatter.format(emptyList(), program)
 
-        assertTrue(result.contains("x=5.0;"))
-        assertFalse(result.contains("x = 5.0;"))
+        assertTrue(result.contains("x=5;"))
+        assertFalse(result.contains("x = 5;"))
     }
 
     @Test
@@ -432,6 +452,6 @@ class FormatterTest {
 
         val result = formatter.format(tokens, Program(Position(1, 1), listOf(stmt)))
 
-        assertEquals("x   =  5.0;", result)
+        assertEquals("x   =  5;", result)
     }
 }
