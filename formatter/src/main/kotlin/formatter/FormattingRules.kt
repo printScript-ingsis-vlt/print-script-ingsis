@@ -11,6 +11,7 @@ import kotlinx.serialization.Serializable
  * - Espacio antes y después de "=" en asignaciones
  * - Saltos de línea antes de "println" (0, 1 o 2)
  * - Espacios de indentación dentro de un bloque
+ * - Espacio pegado a los paréntesis de "println" (ej. "println ( x );")
  *
  * `null` en cualquiera de estos campos significa "no forzar esta regla, preservar el
  * espaciado del archivo original" - a diferencia de `true`/`false`, que sí la fuerzan.
@@ -27,6 +28,7 @@ data class FormattingRules(
     val spaceAroundEqual: Boolean? = null,
     val newlinesBeforePrintln: Int? = null,
     val indentationSpaces: Int? = null,
+    val spaceAroundPrintParens: Boolean? = null,
 ) {
     companion object {
         const val NEWLINE_AFTER_SEMICOLON = true

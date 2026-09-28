@@ -86,7 +86,12 @@ class PrintScriptFormatter(
             when (stmt) {
                 is VariableDeclaration -> formatVariableDeclaration(stmt)
                 is Assignment -> formatAssignment(stmt)
-                is PrintStatement -> "println(${formatExpression(stmt.argument)});"
+                is PrintStatement ->
+                    if (rules.spaceAroundPrintParens == true) {
+                        "println ( ${formatExpression(stmt.argument)} );"
+                    } else {
+                        "println(${formatExpression(stmt.argument)});"
+                    }
                 else -> throw IllegalArgumentException("Unknown statement type: ${stmt.javaClass.simpleName}")
             }
 

@@ -134,6 +134,17 @@ class FormatterTest {
     }
 
     @Test
+    fun `format print statement with spaceAroundPrintParens forces space around parens`() {
+        val formatter = PrintScriptFormatter(FormattingRules(spaceAroundPrintParens = true))
+        val stmt = PrintStatement(Identifier("something", Position(1, 1)), Position(1, 1))
+        val program = Program(Position(1, 1), listOf(stmt))
+
+        val result = formatter.format(emptyList(), program)
+
+        assertEquals("println ( something );", result)
+    }
+
+    @Test
     fun `format print statement`() {
         val stmt =
             PrintStatement(
