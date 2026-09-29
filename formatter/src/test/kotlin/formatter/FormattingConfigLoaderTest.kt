@@ -1,26 +1,28 @@
 package formatter
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import java.io.File
 
 class FormattingConfigLoaderTest {
     @Test
     fun `load default when file does not exist`() {
+        // default = nada forzado, todo null
         val rules = FormattingConfigLoader.loadFromJson("/nonexistent/path.json")
-        assertEquals(true, rules.spaceBeforeColon)
-        assertEquals(true, rules.spaceAfterColon)
-        assertEquals(true, rules.spaceAroundEqual)
-        assertEquals(1, rules.newlinesBeforePrintln)
+        assertNull(rules.spaceBeforeColon)
+        assertNull(rules.spaceAfterColon)
+        assertNull(rules.spaceAroundEqual)
+        assertNull(rules.newlinesBeforePrintln)
     }
 
     @Test
     fun `load default rules`() {
         val rules = FormattingConfigLoader.loadDefault()
-        assertEquals(true, rules.spaceBeforeColon)
-        assertEquals(true, rules.spaceAfterColon)
-        assertEquals(true, rules.spaceAroundEqual)
-        assertEquals(1, rules.newlinesBeforePrintln)
+        assertNull(rules.spaceBeforeColon)
+        assertNull(rules.spaceAfterColon)
+        assertNull(rules.spaceAroundEqual)
+        assertNull(rules.newlinesBeforePrintln)
     }
 
     @Test

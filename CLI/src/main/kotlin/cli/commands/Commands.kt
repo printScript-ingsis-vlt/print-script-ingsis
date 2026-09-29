@@ -21,6 +21,7 @@ import parser.grammar.GrammarConfigurations
 import result.Result
 import semantic.SemanticAnalyzer
 import semantic.SemanticConfigurations
+import token.Token
 import java.io.File
 
 class MyLangCli : CliktCommand(name = "mylang") {
@@ -66,9 +67,9 @@ class InterpretCommand : CliktCommand(
 
     override fun run() {
         val version = PrintScriptVersion.fromString(versionStr)
-        val program = loadProgram(file, version) ?: return
+        val loaded = loadProgram(file, version) ?: return
         val interpreterConfig = InterpreterConfigurations.getConfiguration(version)
-        ConfigurableInterpreter(ConsoleOutput, interpreterConfig).run(program)
+        ConfigurableInterpreter(ConsoleOutput, interpreterConfig).run(loaded.program)
     }
 }
 
@@ -81,8 +82,8 @@ class FormatCommand : CliktCommand(
 
     override fun run() {
         // Carga el programa con la versión por defecto de PrintScript
-        val program = loadProgram(file, PrintScriptVersion.DEFAULT) ?: return
-        val formatted = PrintScriptFormatter(FormattingConfigLoader.loadDefault()).format(program)
+        val loaded = loadProgram(file, PrintScriptVersion.DEFAULT) ?: return
+        val formatted = PrintScriptFormatter(FormattingConfigLoader.loadDefault()).format(loaded.tokens, loaded.program)
 
         if (write) {
             file.writeText(formatted)
@@ -101,8 +102,8 @@ class LintCommand : CliktCommand(
 
     override fun run() {
         // Carga el programa con la versión por defecto de PrintScript
-        val program = loadProgram(file, PrintScriptVersion.DEFAULT) ?: return
-        val notifications = PrintScriptLinter().lint(program)
+        val loaded = loadProgram(file, PrintScriptVersion.DEFAULT) ?: return
+        val notifications = PrintScriptLinter().lint(loaded.program)
 
         if (notifications.isEmpty()) {
             echo("No se encontraron problemas.")
@@ -118,10 +119,12 @@ class LintCommand : CliktCommand(
     }
 }
 
+private data class LoadedProgram(val tokens: List<Token>, val program: Program)
+
 private fun CliktCommand.loadProgram(
     file: File,
     version: PrintScriptVersion,
-): Program? {
+): LoadedProgram? {
     val lexerConfig = LexerConfigurations.getConfiguration(version)
 
     // 2. Instanciar el Lexer pasándole la configuración seleccionada
@@ -155,11 +158,11 @@ private fun CliktCommand.loadProgram(
             null
         }
 
-    if (program != null && !validateSemantics(program, version)) {
+    if (tokens == null || program == null || !validateSemantics(program, version)) {
         return null
     }
 
-    return program
+    return LoadedProgram(tokens, program)
 }
 
 private fun CliktCommand.validateSemantics(

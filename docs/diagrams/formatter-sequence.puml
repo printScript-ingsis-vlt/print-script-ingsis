@@ -7,15 +7,21 @@ autonumber
 
 actor Usuario
 participant "CLI / consumidor" as Consumer
+participant "Lexer" as Lexer
+participant "Parser" as Parser
 participant "FormattingConfigLoader" as Config
 participant "PrintScriptFormatter" as Formatter
 participant "AST" as Program
 participant "Texto formateado" as Output
 
 Usuario -> Consumer : solicita fmt archivo
-Consumer -> Config : loadDefault()
-Config --> Consumer : FormattingRules
-Consumer -> Formatter : format(program)
+Consumer -> Lexer : tokenize(archivo)
+Lexer --> Consumer : tokens
+Consumer -> Parser : parse(tokens)
+Parser --> Consumer : Program
+Consumer -> Config : loadDefault() / loadFromJson(...)
+Config --> Consumer : FormattingRules (campos nullable)
+Consumer -> Formatter : format(tokens, program)
 activate Formatter
 
 loop Por cada sentencia del AST
@@ -23,23 +29,40 @@ loop Por cada sentencia del AST
 
   alt Caso 1: declaración
     Formatter -> Formatter : usa mutable para elegir let o const
-    Formatter -> Formatter : aplica espacios de ':' y '='
+    alt regla == null (spaceBeforeColon/After/spaceAroundEqual)
+      Formatter -> Formatter : originalGap(position, ...) usando tokens
+    else regla == true/false
+      Formatter -> Formatter : fuerza el espacio según la regla
+    end
     Formatter -> Output : let/const nombre : tipo = valor;
 
   else Caso 2: bloque if / else
-    Formatter -> Formatter : formatea condición y llave de apertura
+    alt ifBraceOnNewLine == true
+      Formatter -> Output : if (condición)\n{
+    else null/false (default)
+      Formatter -> Output : if (condición) {
+    end
     Formatter -> Formatter : formatStatements(rama, nivel + 1)
-    Formatter -> Formatter : aplica indentationSpaces a cada línea interna
-    Formatter -> Output : if (condición) { ... } else { ... }
+    Formatter -> Formatter : aplica indentationSpaces (default 2) a cada línea interna
+    Formatter -> Output : ... } else { ... } (o } / else / { en líneas separadas)
 
   else Caso 3: asignación o expresión binaria
-    Formatter -> Formatter : aplica espacios alrededor del operador
+    alt spaceAroundEqual == null
+      Formatter -> Formatter : originalGap(position, ...) usando tokens
+    else true/false
+      Formatter -> Formatter : fuerza el espacio según la regla
+    end
     Formatter -> Output : nombre = a + b;
 
   else Caso 4: println con expresión
     Formatter -> Formatter : formatea expresión recursivamente
-    Formatter -> Formatter : agrega saltos previos configurados
-    Formatter -> Output : println(valor / readInput(...) / readEnv(...));
+    note right: solo agrega líneas en blanco si el\nstatement anterior también era println
+    Formatter -> Formatter : agrega saltos previos configurados (newlinesBeforePrintln)
+    alt spaceAroundPrintParens == true
+      Formatter -> Output : println ( valor / readInput(...) / readEnv(...) );
+    else null/false (default)
+      Formatter -> Output : println(valor / readInput(...) / readEnv(...));
+    end
   end
 end
 

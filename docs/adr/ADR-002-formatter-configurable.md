@@ -1,8 +1,10 @@
 # ADR: Formateador de Código Configurable para PrintScript
 
-* **Estado:** Implementado
+* **Estado:** Superado parcialmente por [ADR-010](ADR-011-formatter-preservar-espaciado.md)
 * **Fecha:** 2026-08-25
 * **Decisores:** Equipo de desarrollo del lenguaje
+
+> **Nota (2026-09-28):** La sección "¿Por qué no preservar espacios originales?" y los defaults `true`/`1` de `FormattingRules` descriptos en este documento ya no reflejan el código actual. Ver [ADR-010](ADR-011-formatter-preservar-espaciado.md) para la decisión vigente (reglas nullable, `null` = preservar espaciado original vía tokens). El resto de este documento (arquitectura general, reglas fijas, estructura de módulos) sigue vigente.
 
 ---
 
@@ -341,22 +343,22 @@ dependencies {
 
 ### Positivas
 
-✅ **Flexibilidad:** 4 aspectos configurables sin comprometer estándares  
-✅ **Coherencia:** Reglas fijas aseguran mínima calidad  
-✅ **Testabilidad:** 12 tests cubren todos los casos principales  
-✅ **Integración:** Soporta JSON como requiere la consigna  
-✅ **Extensibilidad:** Agregar nuevos statements solo requiere un método `format*()`  
+✅ **Flexibilidad:** 4 aspectos configurables sin comprometer estándares
+✅ **Coherencia:** Reglas fijas aseguran mínima calidad
+✅ **Testabilidad:** 12 tests cubren todos los casos principales
+✅ **Integración:** Soporta JSON como requiere la consigna
+✅ **Extensibilidad:** Agregar nuevos statements solo requiere un método `format*()`
 ✅ **Mantenibilidad:** Código limpio y modular
 
 ### Negativas
 
-⚠️ El formateador no preserva comentarios (el AST no los contiene)  
-⚠️ Cambios en el AST requieren actualizar el formateador  
+⚠️ El formateador no preserva comentarios (el AST no los contiene)
+⚠️ Cambios en el AST requieren actualizar el formateador
 ⚠️ La configuración es por archivo, no por statement
 
 ### Neutrales
 
-◻️ No valida código (responsabilidad del parser)  
+◻️ No valida código (responsabilidad del parser)
 ◻️ Puede evolucionar a linter en el futuro
 
 ---

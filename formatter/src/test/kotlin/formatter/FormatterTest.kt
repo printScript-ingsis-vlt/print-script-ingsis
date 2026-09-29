@@ -17,9 +17,16 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import token.Token
+import token.TokenType
 
 class FormatterTest {
-    private val formatter = PrintScriptFormatter()
+    // Reglas explícitas (no default = null) para no depender de tokens reales en estos tests,
+    // que construyen el AST a mano sin un archivo fuente real.
+    private val formatter =
+        PrintScriptFormatter(
+            FormattingRules(spaceBeforeColon = true, spaceAfterColon = true, spaceAroundEqual = true),
+        )
 
     @Test
     fun `format simple variable declaration`() {
@@ -32,9 +39,9 @@ class FormatterTest {
             )
         val program = Program(Position(1, 1), listOf(stmt))
 
-        val result = formatter.format(program)
+        val result = formatter.format(emptyList(), program)
 
-        assertTrue(result.contains("let x : number = 5.0;"))
+        assertTrue(result.contains("let x : number = 5;"))
     }
 
     @Test
@@ -48,7 +55,7 @@ class FormatterTest {
             )
         val program = Program(Position(1, 1), listOf(stmt))
 
-        val result = formatter.format(program)
+        val result = formatter.format(emptyList(), program)
 
         assertTrue(result.contains("let name : string;"))
     }
@@ -64,9 +71,9 @@ class FormatterTest {
                 mutable = false,
             )
 
-        val result = formatter.format(Program(Position(1, 1), listOf(stmt)))
+        val result = formatter.format(emptyList(), Program(Position(1, 1), listOf(stmt)))
 
-        assertEquals("const port : number = 8080.0;", result)
+        assertEquals("const port : number = 8080;", result)
     }
 
     @Test
@@ -79,9 +86,9 @@ class FormatterTest {
             )
         val program = Program(Position(1, 1), listOf(stmt))
 
-        val result = formatter.format(program)
+        val result = formatter.format(emptyList(), program)
 
-        assertTrue(result.contains("x = 10.0;"))
+        assertTrue(result.contains("x = 10;"))
     }
 
     @Test
@@ -101,9 +108,40 @@ class FormatterTest {
             )
         val program = Program(Position(1, 1), listOf(stmt))
 
-        val result = formatter.format(program)
+        val result = formatter.format(emptyList(), program)
 
         assertTrue(result.contains("result = a + b;"))
+    }
+
+    @Test
+    fun `format number literal without trailing zero for whole numbers`() {
+        val stmt = PrintStatement(NumberLiteral(8080.0, Position(1, 1)), Position(1, 1))
+        val program = Program(Position(1, 1), listOf(stmt))
+
+        val result = formatter.format(emptyList(), program)
+
+        assertEquals("println(8080);", result)
+    }
+
+    @Test
+    fun `format number literal keeps decimals when they are not zero`() {
+        val stmt = PrintStatement(NumberLiteral(5.5, Position(1, 1)), Position(1, 1))
+        val program = Program(Position(1, 1), listOf(stmt))
+
+        val result = formatter.format(emptyList(), program)
+
+        assertEquals("println(5.5);", result)
+    }
+
+    @Test
+    fun `format print statement with spaceAroundPrintParens forces space around parens`() {
+        val formatter = PrintScriptFormatter(FormattingRules(spaceAroundPrintParens = true))
+        val stmt = PrintStatement(Identifier("something", Position(1, 1)), Position(1, 1))
+        val program = Program(Position(1, 1), listOf(stmt))
+
+        val result = formatter.format(emptyList(), program)
+
+        assertEquals("println ( something );", result)
     }
 
     @Test
@@ -115,7 +153,7 @@ class FormatterTest {
             )
         val program = Program(Position(1, 1), listOf(stmt))
 
-        val result = formatter.format(program)
+        val result = formatter.format(emptyList(), program)
 
         assertTrue(result.contains("println(x);"))
     }
@@ -125,7 +163,7 @@ class FormatterTest {
         val stmt = PrintStatement(BooleanLiteral(true, Position(1, 1)), Position(1, 1))
         val program = Program(Position(1, 1), listOf(stmt))
 
-        val result = formatter.format(program)
+        val result = formatter.format(emptyList(), program)
 
         assertEquals("println(true);", result)
     }
@@ -135,7 +173,7 @@ class FormatterTest {
         val expression = ReadInputExpression(StringLiteral("Name", Position(1, 1)), Position(1, 1))
         val statement = PrintStatement(expression, Position(1, 1))
 
-        val result = formatter.format(Program(Position(1, 1), listOf(statement)))
+        val result = formatter.format(emptyList(), Program(Position(1, 1), listOf(statement)))
 
         assertEquals("println(readInput(\"Name\"));", result)
     }
@@ -145,7 +183,7 @@ class FormatterTest {
         val expression = ReadEnvExpression(Identifier("variableName", Position(1, 1)), Position(1, 1))
         val statement = PrintStatement(expression, Position(1, 1))
 
-        val result = formatter.format(Program(Position(1, 1), listOf(statement)))
+        val result = formatter.format(emptyList(), Program(Position(1, 1), listOf(statement)))
 
         assertEquals("println(readEnv(variableName));", result)
     }
@@ -161,7 +199,7 @@ class FormatterTest {
             )
         val statement = PrintStatement(expression, Position(1, 1))
 
-        val result = formatter.format(Program(Position(1, 1), listOf(statement)))
+        val result = formatter.format(emptyList(), Program(Position(1, 1), listOf(statement)))
 
         assertEquals("println(\"Name: \" + readInput(\"Enter name\"));", result)
     }
@@ -178,9 +216,9 @@ class FormatterTest {
         val stmt = PrintStatement(expr, Position(1, 1))
         val program = Program(Position(1, 1), listOf(stmt))
 
-        val result = formatter.format(program)
+        val result = formatter.format(emptyList(), program)
 
-        assertTrue(result.contains("println(5.0 + 3.0);"))
+        assertTrue(result.contains("println(5 + 3);"))
     }
 
     @Test
@@ -195,7 +233,7 @@ class FormatterTest {
         val stmt = PrintStatement(expr, Position(1, 1))
         val program = Program(Position(1, 1), listOf(stmt))
 
-        val result = formatter.format(program)
+        val result = formatter.format(emptyList(), program)
 
         assertTrue(result.contains("println(\"Hello \" + name);"))
     }
@@ -222,10 +260,10 @@ class FormatterTest {
             )
         val program = Program(Position(1, 1), listOf(stmt1, stmt2, stmt3))
 
-        val result = formatter.format(program)
+        val result = formatter.format(emptyList(), program)
 
-        assertTrue(result.contains("let x : number = 5.0;"))
-        assertTrue(result.contains("x = 10.0;"))
+        assertTrue(result.contains("let x : number = 5;"))
+        assertTrue(result.contains("x = 10;"))
         assertTrue(result.contains("println(x);"))
     }
 
@@ -242,10 +280,10 @@ class FormatterTest {
             )
         val program = Program(Position(1, 1), listOf(stmt))
 
-        val result = formatter.format(program)
+        val result = formatter.format(emptyList(), program)
 
-        assertTrue(result.contains("x=5.0;"))
-        assertFalse(result.contains("x = 5.0;"))
+        assertTrue(result.contains("x=5;"))
+        assertFalse(result.contains("x = 5;"))
     }
 
     @Test
@@ -258,12 +296,12 @@ class FormatterTest {
                 position = Position(1, 1),
             )
 
-        val result = formatter.format(Program(Position(1, 1), listOf(statement)))
+        val result = formatter.format(emptyList(), Program(Position(1, 1), listOf(statement)))
 
         assertEquals(
             """
             if (enabled) {
-                println("on");
+              println("on");
             }
             """.trimIndent(),
             result,
@@ -288,12 +326,12 @@ class FormatterTest {
                 position = Position(1, 1),
             )
 
-        val result = formatter.format(Program(Position(1, 1), listOf(statement)))
+        val result = formatter.format(emptyList(), Program(Position(1, 1), listOf(statement)))
 
         assertEquals(
             """
             if (enabled) {
-                const port : number = readEnv("PORT");
+              const port : number = readEnv("PORT");
             }
             """.trimIndent(),
             result,
@@ -310,14 +348,14 @@ class FormatterTest {
                 position = Position(1, 1),
             )
 
-        val result = formatter.format(Program(Position(1, 1), listOf(statement)))
+        val result = formatter.format(emptyList(), Program(Position(1, 1), listOf(statement)))
 
         assertEquals(
             """
             if (enabled) {
-                println("on");
+              println("on");
             } else {
-                println("off");
+              println("off");
             }
             """.trimIndent(),
             result,
@@ -341,14 +379,14 @@ class FormatterTest {
                 position = Position(1, 1),
             )
 
-        val result = formatter.format(Program(Position(1, 1), listOf(statement)))
+        val result = formatter.format(emptyList(), Program(Position(1, 1), listOf(statement)))
 
         assertEquals(
             """
             if (primary) {
-                if (secondary) {
-                    println("nested");
-                }
+              if (secondary) {
+                println("nested");
+              }
             }
             """.trimIndent(),
             result,
@@ -366,7 +404,7 @@ class FormatterTest {
                 position = Position(1, 1),
             )
 
-        val result = formatter.format(Program(Position(1, 1), listOf(statement)))
+        val result = formatter.format(emptyList(), Program(Position(1, 1), listOf(statement)))
 
         assertEquals(
             """
@@ -376,5 +414,107 @@ class FormatterTest {
             """.trimIndent(),
             result,
         )
+    }
+
+    @Test
+    fun `format if block with brace on new line`() {
+        val formatter = PrintScriptFormatter(FormattingRules(ifBraceOnNewLine = true))
+        val statement =
+            IfStatement(
+                condition = Identifier("something", Position(1, 1)),
+                thenBranch = listOf(PrintStatement(StringLiteral("Entered if", Position(1, 1)), Position(1, 1))),
+                elseBranch = null,
+                position = Position(1, 1),
+            )
+
+        val result = formatter.format(emptyList(), Program(Position(1, 1), listOf(statement)))
+
+        assertEquals(
+            """
+            if (something)
+            {
+              println("Entered if");
+            }
+            """.trimIndent(),
+            result,
+        )
+    }
+
+    @Test
+    fun `format if else block with brace on new line`() {
+        val formatter = PrintScriptFormatter(FormattingRules(ifBraceOnNewLine = true))
+        val statement =
+            IfStatement(
+                condition = Identifier("something", Position(1, 1)),
+                thenBranch = listOf(PrintStatement(StringLiteral("on", Position(1, 1)), Position(1, 1))),
+                elseBranch = listOf(PrintStatement(StringLiteral("off", Position(1, 1)), Position(1, 1))),
+                position = Position(1, 1),
+            )
+
+        val result = formatter.format(emptyList(), Program(Position(1, 1), listOf(statement)))
+
+        assertEquals(
+            """
+            if (something)
+            {
+              println("on");
+            }
+            else
+            {
+              println("off");
+            }
+            """.trimIndent(),
+            result,
+        )
+    }
+
+    @Test
+    fun `preserves original spacing in a declaration when rules are null`() {
+        // fuente equivalente: let  x   :string   =\"Joe\";
+        val stmt =
+            VariableDeclaration(
+                name = "x",
+                type = "string",
+                value = StringLiteral("Joe", Position(1, 20)),
+                position = Position(1, 1),
+            )
+        val tokens =
+            listOf(
+                Token(TokenType.LET, "let", Position(1, 1), Position(1, 4)),
+                Token(TokenType.IDENTIFIER, "x", Position(1, 5), Position(1, 6)),
+                Token(TokenType.COLON, ":", Position(1, 9), Position(1, 10)),
+                Token(TokenType.IDENTIFIER, "string", Position(1, 10), Position(1, 16)),
+                Token(TokenType.EQUAL, "=", Position(1, 19), Position(1, 20)),
+                Token(TokenType.STRING_LITERAL, "\"Joe\"", Position(1, 20), Position(1, 25)),
+                Token(TokenType.SEMICOLON, ";", Position(1, 25), Position(1, 26)),
+            )
+        val formatter = PrintScriptFormatter(FormattingRules.default())
+
+        val result = formatter.format(tokens, Program(Position(1, 1), listOf(stmt)))
+
+        assertEquals("let x   :string   =\"Joe\";", result)
+    }
+
+    @Test
+    fun `preserves original spacing in an assignment when rules are null`() {
+        // fuente equivalente: x   =  5;
+        val stmt =
+            Assignment(
+                name = "x",
+                value = NumberLiteral(5.0, Position(1, 8)),
+                position = Position(1, 1),
+            )
+        val tokens =
+            listOf(
+                Token(TokenType.IDENTIFIER, "x", Position(1, 1), Position(1, 2)),
+                Token(TokenType.EQUAL, "=", Position(1, 5), Position(1, 6)),
+                Token(TokenType.NUMBER_LITERAL, "5", Position(1, 8), Position(1, 9)),
+                Token(TokenType.SEMICOLON, ";", Position(1, 9), Position(1, 10)),
+            )
+        val formatter = PrintScriptFormatter(FormattingRules.default())
+
+        val result = formatter.format(tokens, Program(Position(1, 1), listOf(stmt)))
+
+        assertEquals("x   =  5;", result)
     }
 }
