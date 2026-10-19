@@ -5,17 +5,17 @@ import parser.engine.TokenCursor
 import result.SyntaxError
 import token.TokenType
 
-
 /** Terminal por TokenType */
 data class TokenRule(
     val type: TokenType,
     val expected: String = type.name,
 ) : StreamRule {
     override fun parse(cursor: TokenCursor): StreamParseResult {
-        val token = cursor.peek()
-            ?: return StreamParseResult.Failure(
-                SyntaxError(Position(0, 0), "Unexpected end of input, expected $expected"),
-            )
+        val token =
+            cursor.peek()
+                ?: return StreamParseResult.Failure(
+                    SyntaxError(Position(0, 0), "Unexpected end of input, expected $expected"),
+                )
 
         return if (token.type == type) {
             cursor.advance()
@@ -34,10 +34,11 @@ data class LiteralRule(
     val value: String,
 ) : StreamRule {
     override fun parse(cursor: TokenCursor): StreamParseResult {
-        val token = cursor.peek()
-            ?: return StreamParseResult.Failure(
-                SyntaxError(Position(0, 0), "Unexpected end of input, expected '$value'"),
-            )
+        val token =
+            cursor.peek()
+                ?: return StreamParseResult.Failure(
+                    SyntaxError(Position(0, 0), "Unexpected end of input, expected '$value'"),
+                )
 
         return if (token.type == type && token.value == value) {
             cursor.advance()
