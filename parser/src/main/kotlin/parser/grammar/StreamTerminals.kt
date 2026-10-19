@@ -1,10 +1,11 @@
 package parser.grammar
 
-import parser.engine.token
+
+import parser.stream.token
 import token.TokenType
 
-/** terminales reutilizados por varias reglas de statement/expression */
-object Terminals {
+/** Terminales para el engine stream. Misma idea que [Terminals], otra firma. */
+object StreamTerminals {
     val LET = token(TokenType.LET, "let")
     val COLON = token(TokenType.COLON, ":")
     val EQUAL = token(TokenType.EQUAL, "=")
