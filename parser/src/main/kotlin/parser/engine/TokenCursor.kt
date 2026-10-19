@@ -47,8 +47,6 @@ interface TokenCursor {
     fun hasNext(): Boolean = peek() != null
 }
 
-
 interface Mark {
     val position: Int
 }
-

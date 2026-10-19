@@ -1,6 +1,5 @@
 package parser.stream
 
-
 import token.TokenType
 
 // Helpers de construcción (azúcar sintáctico) — versión stream

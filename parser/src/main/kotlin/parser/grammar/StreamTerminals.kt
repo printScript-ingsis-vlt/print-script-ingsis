@@ -1,6 +1,5 @@
 package parser.grammar
 
-
 import parser.stream.token
 import token.TokenType
 

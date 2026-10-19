@@ -103,6 +103,5 @@ data class Action(
 
 /** Referencia perezosa, para reglas recursivas */
 data class Ref(private val resolve: () -> StreamRule) : StreamRule {
-    override fun parse(cursor: TokenCursor): StreamParseResult =
-        resolve().parse(cursor)
+    override fun parse(cursor: TokenCursor): StreamParseResult = resolve().parse(cursor)
 }

@@ -13,7 +13,7 @@ class ReadEnvTest {
     private fun pos() = Position(1, 1)
 
     private class TestOutput : Output {
-        override fun write(message: String) = Unit
+        override fun write(text: String) = Unit
     }
 
     @Test

@@ -21,7 +21,7 @@ class ConfigurableInterpreter(
         program.statements.forEach(::execute)
     }
 
-    private fun execute(stmt: Stmt) {
+    fun execute(stmt: Stmt) {
         val handler =
             statementHandlers.find { it.canHandle(stmt) }
                 ?: error("No handler found for statement: ${stmt::class.simpleName}")

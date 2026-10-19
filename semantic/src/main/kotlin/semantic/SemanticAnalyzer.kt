@@ -20,22 +20,28 @@ class SemanticAnalyzer(
 
     fun analyze(program: Program): List<SemanticError> = validateAndUpdate(program.statements, SemanticContext())
 
+    fun analyzeStatement(
+        statement: Stmt,
+        context: SemanticContext,
+    ): List<SemanticError> {
+        val handler = handlerFor(statement)
+        val analyzeExpression = { expression: ast.Expr, expectedType: String? ->
+            expressionAnalyzer.analyze(expression, context, expectedType)
+        }
+        val statementErrors = handler.validate(statement, context, analyzeExpression, this)
+        if (statementErrors.isEmpty()) {
+            handler.updateEnvironment(statement, context, analyzeExpression, this)
+        }
+        return statementErrors
+    }
+
     override fun validateAndUpdate(
         statements: List<Stmt>,
         context: SemanticContext,
     ): List<SemanticError> {
         val errors = mutableListOf<SemanticError>()
         for (statement in statements) {
-            val handler = handlerFor(statement)
-            val analyzeExpression = { expression: ast.Expr, expectedType: String? ->
-                expressionAnalyzer.analyze(expression, context, expectedType)
-            }
-            val statementErrors = handler.validate(statement, context, analyzeExpression, this)
-
-            errors.addAll(statementErrors)
-            if (statementErrors.isEmpty()) {
-                handler.updateEnvironment(statement, context, analyzeExpression, this)
-            }
+            errors.addAll(analyzeStatement(statement, context))
         }
 
         return errors

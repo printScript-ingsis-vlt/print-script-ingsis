@@ -10,14 +10,13 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
 import formatter.FormattingConfigLoader
 import formatter.PrintScriptFormatter
-import interpreter.ConfigurableInterpreter
 import interpreter.ConsoleOutput
-import interpreter.InterpreterConfigurations
 import lexer.LexerConfigurations
 import lexer.StreamLexer
 import linter.PrintScriptLinter
-import parser.ConfigurableParser
-import parser.grammar.GrammarConfigurations
+import parser.streamRules.StreamGrammarConfigurations
+import pipeline.PipelineResult
+import pipeline.StreamPipeline
 import result.Result
 import semantic.SemanticAnalyzer
 import semantic.SemanticConfigurations
@@ -67,9 +66,29 @@ class InterpretCommand : CliktCommand(
 
     override fun run() {
         val version = PrintScriptVersion.fromString(versionStr)
-        val loaded = loadProgram(file, version) ?: return
-        val interpreterConfig = InterpreterConfigurations.getConfiguration(version)
-        ConfigurableInterpreter(ConsoleOutput, interpreterConfig).run(loaded.program)
+        val pipeline = StreamPipeline(version, ConsoleOutput)
+        val result =
+            file.bufferedReader().use { reader ->
+                pipeline.run(reader)
+            }
+
+        when (result) {
+            is PipelineResult.Success -> Unit
+            is PipelineResult.LexicalFailure -> {
+                echo("Error léxico: ${result.error.message}", err = true)
+            }
+            is PipelineResult.SyntaxFailure -> {
+                echo("Error de sintaxis: ${result.error.message}", err = true)
+            }
+            is PipelineResult.SemanticFailure -> {
+                result.errors.forEach { error ->
+                    echo(
+                        "Error semántico: ${error.position.line}:${error.position.column} - ${error.message}",
+                        err = true,
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -142,10 +161,10 @@ private fun CliktCommand.loadProgram(
             }
         }
 
-    val parserConfig = GrammarConfigurations.getConfiguration(version)
+    val parser = StreamGrammarConfigurations.getConfiguration(version)
     val program =
         if (tokens != null) {
-            when (val result = ConfigurableParser(parserConfig).parse(tokens)) {
+            when (val result = parser.parse(tokens)) {
                 is Result.Success -> result.value
                 is Result.Failure -> {
                     result.error.forEach { error ->

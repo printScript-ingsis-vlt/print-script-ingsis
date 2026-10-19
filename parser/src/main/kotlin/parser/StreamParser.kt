@@ -14,15 +14,12 @@ import token.Token
 import token.TokenType
 
 /**
- * Parser streaming. Equivalente a [ConfigurableParser], pero trabaja
- * sobre un [TokenCursor] y puede emitir statements de a uno sin
- * materializar el Program completo.
- *
- * Convive con el parser clásico: no lo reemplaza.
+ * Parser streaming. Trabaja sobre un [TokenCursor] y puede emitir
+ * statements de a uno sin materializar el Program completo.
  */
 class StreamParser(
     private val statement: StreamRule,
-) {
+) : Parser {
     /**
      * API principal: parsea statement por statement.
      * Ideal para archivos grandes (memoria constante por statement).
@@ -49,8 +46,8 @@ class StreamParser(
      * Compatibilidad: recibe List completa y arma un Program.
      * Útil para tests y para no romper callers que esperan Program.
      */
-    fun parse(tokens: List<Token>): Result<Program, List<SyntaxError>> {
-        val cursor = ListTokenCursor(tokens)
+    override fun parse(line: List<Token>): Result<Program, List<SyntaxError>> {
+        val cursor = ListTokenCursor(line)
         val statements = mutableListOf<Stmt>()
         val errors = mutableListOf<SyntaxError>()
 
@@ -64,7 +61,7 @@ class StreamParser(
         return if (errors.isEmpty()) {
             Result.Success(
                 Program(
-                    position = tokens.firstOrNull()?.start ?: Position(0, 0),
+                    position = line.firstOrNull()?.start ?: Position(0, 0),
                     statements = statements,
                 ),
             )
@@ -106,12 +103,12 @@ class StreamParser(
 
     /** Error recovery: avanza hasta ';' o EOF (igual que el parser clásico). */
     private fun recover(cursor: TokenCursor) {
-        while (true) {
-            val t = cursor.peek() ?: break
-            if (t.type == TokenType.SEMICOLON || t.type == TokenType.EOF) {
-                if (t.type == TokenType.SEMICOLON) cursor.advance()
-                break
-            }
+        var current = cursor.peek()
+        while (current != null && current.type != TokenType.SEMICOLON && current.type != TokenType.EOF) {
+            cursor.advance()
+            current = cursor.peek()
+        }
+        if (current?.type == TokenType.SEMICOLON) {
             cursor.advance()
         }
     }
@@ -121,5 +118,4 @@ class StreamParser(
  * Factory cómoda: arma el StreamParser a partir de una lista de reglas
  * de statement (misma idea que ConfigurableParser + GrammarConfiguration).
  */
-fun streamParserOf(statementRules: List<StreamRule>): StreamParser =
-    StreamParser(statement = Choice(statementRules))
+fun streamParserOf(statementRules: List<StreamRule>): StreamParser = StreamParser(statement = Choice(statementRules))
