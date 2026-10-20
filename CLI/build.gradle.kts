@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":interpreter"))
     implementation(project(":formatter"))
     implementation(project(":linter"))
+    implementation(project(":pipeline"))
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

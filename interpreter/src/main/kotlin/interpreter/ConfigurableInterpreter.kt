@@ -9,7 +9,7 @@ import runtime.valuedataclass.Value
 class ConfigurableInterpreter(
     private val output: Output,
     configuration: InterpreterConfiguration = InterpreterConfigurations.default,
-    private val inputProvider: InputProvider = StdinInputProvider(),
+    private val inputProvider: ScriptInputProvider = StdinInputProvider(),
     private val envProvider: EnvProvider = SystemEnvProvider(),
 ) {
     private val environment = Environment()
@@ -21,7 +21,7 @@ class ConfigurableInterpreter(
         program.statements.forEach(::execute)
     }
 
-    private fun execute(stmt: Stmt) {
+    fun execute(stmt: Stmt) {
         val handler =
             statementHandlers.find { it.canHandle(stmt) }
                 ?: error("No handler found for statement: ${stmt::class.simpleName}")

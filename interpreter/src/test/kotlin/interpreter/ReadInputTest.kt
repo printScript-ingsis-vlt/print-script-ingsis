@@ -16,8 +16,8 @@ class ReadInputTest {
     private class TestOutput : Output {
         val printed = mutableListOf<String>()
 
-        override fun write(message: String) {
-            printed.add(message)
+        override fun write(text: String) {
+            printed.add(text)
         }
     }
 
