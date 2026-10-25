@@ -1,9 +1,9 @@
 package linter.rules
 
-import ast.Assignment
 import ast.Program
-import ast.VariableDeclaration
 import linter.LintRule
+import linter.LinterConfiguration
+import linter.LinterConfigurations
 import linter.config.IdentifierFormat
 import linter.dataclass.LintNotification
 import linter.dataclass.Severity
@@ -11,6 +11,7 @@ import linter.dataclass.Severity
 // --> Rule que revisa todo identificador o asignacion que se le pase
 class IdentifierFormatRule(
     private val format: IdentifierFormat,
+    private val configuration: LinterConfiguration = LinterConfigurations.default,
 ) : LintRule {
     override val id: String = "identifier-format"
 
@@ -22,33 +23,16 @@ class IdentifierFormatRule(
         val notifications = mutableListOf<LintNotification>()
 
         for (stmt in program.statements) {
-            when (stmt) {
-                is VariableDeclaration -> {
-                    if (!isValid(stmt.name)) {
-                        notifications.add(
-                            LintNotification(
-                                rule = id,
-                                severity = Severity.WARNING,
-                                message = "Identifier '${stmt.name}' does not match $format naming convention",
-                                position = stmt.position,
-                            ),
-                        )
-                    }
-                }
-
-                is Assignment -> {
-                    if (!isValid(stmt.name)) {
-                        notifications.add(
-                            LintNotification(
-                                rule = id,
-                                severity = Severity.WARNING,
-                                message = "Identifier '${stmt.name}' does not match $format naming convention",
-                                position = stmt.position,
-                            ),
-                        )
-                    }
-                }
-                else -> { /* Otros statements no declaran identificadores */ }
+            val name = configuration.statementHandler(stmt).identifier(stmt)
+            if (name != null && !isValid(name)) {
+                notifications.add(
+                    LintNotification(
+                        rule = id,
+                        severity = Severity.WARNING,
+                        message = "Identifier '$name' does not match $format naming convention",
+                        position = stmt.position,
+                    ),
+                )
             }
         }
 

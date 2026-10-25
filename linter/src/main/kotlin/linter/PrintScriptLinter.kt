@@ -13,7 +13,10 @@ import linter.rules.ReadInputArgumentRule
  * y aplicarlas sobre el AST para notificar las alertas
  */
 
-class PrintScriptLinter(private val config: LintConfig = LintConfig()) : Linter {
+class PrintScriptLinter(
+    private val config: LintConfig = LintConfig(),
+    private val configuration: LinterConfiguration = LinterConfigurations.default,
+) : Linter {
     // --> Las reglas se instancian basándose en la configuración provista de antes
     private val rules: List<LintRule> = buildRules()
 
@@ -21,7 +24,7 @@ class PrintScriptLinter(private val config: LintConfig = LintConfig()) : Linter 
         val activeRules = mutableListOf<LintRule>()
 
         // --> Siempre se agrega la regla de formato con la convención indicada en la config
-        activeRules.add(IdentifierFormatRule(config.identifierFormat))
+        activeRules.add(IdentifierFormatRule(config.identifierFormat, configuration))
 
         // --> Solo se agrega la regla de println si está habilitada en la config
         if (config.printlnArgumentCheck) {
@@ -29,7 +32,7 @@ class PrintScriptLinter(private val config: LintConfig = LintConfig()) : Linter 
         }
 
         if (config.readInputArgumentCheck) {
-            activeRules.add(ReadInputArgumentRule())
+            activeRules.add(ReadInputArgumentRule(configuration))
         }
 
         return activeRules
