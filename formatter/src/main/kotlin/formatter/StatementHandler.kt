@@ -7,6 +7,7 @@ import ast.Stmt
 interface StatementHandler {
     fun canHandle(stmt: Stmt): Boolean
 
+    @Suppress("LongParameterList")
     fun format(
         stmt: Stmt,
         indentationLevel: Int,

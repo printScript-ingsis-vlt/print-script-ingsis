@@ -14,7 +14,7 @@ class InterpretCommandTest {
         val script = File(tempDir, "script.ps").apply { writeText("println(1);") }
         val command = InterpretCommand()
 
-        val result = command.test("${script.absolutePath}")
+        val result = command.test(listOf(script.absolutePath))
 
         assertEquals(0, result.statusCode)
     }
@@ -26,7 +26,7 @@ class InterpretCommandTest {
         val script = File(tempDir, "script.ps").apply { writeText("println(1);") }
         val command = InterpretCommand()
 
-        val result = command.test("--version 1.0 ${script.absolutePath}")
+        val result = command.test(listOf("--version", "1.0", script.absolutePath))
 
         assertEquals(0, result.statusCode)
     }
@@ -38,7 +38,7 @@ class InterpretCommandTest {
         val script = File(tempDir, "script.ps").apply { writeText("println(1);") }
         val command = InterpretCommand()
 
-        val result = command.test("--lang-version 1.1 ${script.absolutePath}")
+        val result = command.test(listOf("--lang-version", "1.1", script.absolutePath))
 
         assertEquals(0, result.statusCode)
     }

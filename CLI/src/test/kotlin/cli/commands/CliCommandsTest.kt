@@ -58,19 +58,19 @@ class CliCommandsTest {
 
     @Test
     fun `LexCommand tokeniza exitosamente con version por defecto`() {
-        val result = LexCommand().test(validV10File.absolutePath)
+        val result = LexCommand().test(listOf(validV10File.absolutePath))
         assertEquals(0, result.statusCode)
     }
 
     @Test
     fun `LexCommand tokeniza con flag de version explicito`() {
-        val result = LexCommand().test("--version 1.0 ${validV10File.absolutePath}")
+        val result = LexCommand().test(listOf("--version", "1.0", validV10File.absolutePath))
         assertEquals(0, result.statusCode)
     }
 
     @Test
     fun `LexCommand muestra error cuando falla el lexer`() {
-        val result = LexCommand().test(lexErrorFile.absolutePath)
+        val result = LexCommand().test(listOf(lexErrorFile.absolutePath))
         assertTrue(result.stderr.contains("Error léxico") || result.stdout.contains("Error léxico"))
     }
 
@@ -78,19 +78,19 @@ class CliCommandsTest {
 
     @Test
     fun `InterpretCommand ejecuta script valido en version 1_0`() {
-        val result = InterpretCommand().test("--version 1.0 ${validV10File.absolutePath}")
+        val result = InterpretCommand().test(listOf("--version", "1.0", validV10File.absolutePath))
         assertEquals(0, result.statusCode)
     }
 
     @Test
     fun `InterpretCommand ejecuta script valido en version 1_1 por defecto`() {
-        val result = InterpretCommand().test(validV11File.absolutePath)
+        val result = InterpretCommand().test(listOf(validV11File.absolutePath))
         assertEquals(0, result.statusCode)
     }
 
     @Test
     fun `InterpretCommand aborta si la carga del programa falla`() {
-        val result = InterpretCommand().test(syntaxErrorFile.absolutePath)
+        val result = InterpretCommand().test(listOf(syntaxErrorFile.absolutePath))
         assertTrue(result.stderr.contains("Error de sintaxis") || result.stdout.contains("Error de sintaxis"))
     }
 
@@ -98,21 +98,21 @@ class CliCommandsTest {
 
     @Test
     fun `FormatCommand imprime formateo en STDOUT sin flag write`() {
-        val result = FormatCommand().test(validV10File.absolutePath)
+        val result = FormatCommand().test(listOf(validV10File.absolutePath))
         assertEquals(0, result.statusCode)
         assertTrue(result.stdout.isNotEmpty())
     }
 
     @Test
     fun `FormatCommand reescribe archivo con flag -w`() {
-        val result = FormatCommand().test("-w ${validV10File.absolutePath}")
+        val result = FormatCommand().test(listOf("-w", validV10File.absolutePath))
         assertEquals(0, result.statusCode)
         assertTrue(result.stdout.contains("Archivo formateado"))
     }
 
     @Test
     fun `FormatCommand aborta si el programa no carga`() {
-        val result = FormatCommand().test(lexErrorFile.absolutePath)
+        val result = FormatCommand().test(listOf(lexErrorFile.absolutePath))
         assertTrue(result.stderr.contains("Error léxico") || result.stdout.contains("Error léxico"))
     }
 
@@ -120,14 +120,14 @@ class CliCommandsTest {
 
     @Test
     fun `LintCommand informa script limpio`() {
-        val result = LintCommand().test(validV10File.absolutePath)
+        val result = LintCommand().test(listOf(validV10File.absolutePath))
         assertEquals(0, result.statusCode)
         assertTrue(result.stdout.contains("No se encontraron problemas."))
     }
 
     @Test
     fun `LintCommand aborta si el programa falla en etapa previa`() {
-        val result = LintCommand().test(syntaxErrorFile.absolutePath)
+        val result = LintCommand().test(listOf(syntaxErrorFile.absolutePath))
         assertTrue(result.stderr.contains("Error de sintaxis") || result.stdout.contains("Error de sintaxis"))
     }
 
@@ -135,7 +135,7 @@ class CliCommandsTest {
 
     @Test
     fun `loadProgram captura errores semanticos`() {
-        val result = InterpretCommand().test(semanticErrorFile.absolutePath)
+        val result = InterpretCommand().test(listOf(semanticErrorFile.absolutePath))
         assertTrue(result.stderr.contains("Error semántico") || result.stdout.contains("Error semántico"))
     }
 }

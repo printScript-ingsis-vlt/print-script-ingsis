@@ -21,7 +21,7 @@ class CliVersionIntegrationTest {
             }
 
         val cmd = InterpretCommand()
-        val result = cmd.test("--version 1.0 ${script.absolutePath}")
+        val result = cmd.test(listOf("--version", "1.0", script.absolutePath))
 
         // Debe fallar en parsing o semántica al no reconocer los tokens/bloques en 1.0
         assertTrue(result.stdout.contains("Error") || result.stderr.contains("Error"))
@@ -35,7 +35,7 @@ class CliVersionIntegrationTest {
             }
 
         val cmd = InterpretCommand()
-        val result = cmd.test(script.absolutePath) // Sin flag, usa default 1.1
+        val result = cmd.test(listOf(script.absolutePath)) // Sin flag, usa default 1.1
 
         assertEquals(0, result.statusCode)
     }
@@ -55,7 +55,7 @@ class CliVersionIntegrationTest {
             }
 
         val cmd = InterpretCommand()
-        val result = cmd.test(script.absolutePath)
+        val result = cmd.test(listOf(script.absolutePath))
 
         assertEquals(0, result.statusCode)
     }
@@ -68,7 +68,7 @@ class CliVersionIntegrationTest {
             }
 
         val cmd = InterpretCommand()
-        val result = cmd.test(script.absolutePath)
+        val result = cmd.test(listOf(script.absolutePath))
 
         assertTrue(result.stderr.contains("Error semántico"))
         assertTrue(result.stderr.contains("Cannot reassign constant"))
