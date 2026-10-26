@@ -9,17 +9,21 @@ import ast.ReadInputExpression
 import ast.StringLiteral
 import linter.AstTraversal
 import linter.LintRule
+import linter.LinterConfiguration
+import linter.LinterConfigurations
 import linter.dataclass.LintNotification
 import linter.dataclass.Severity
 
 // Verifica que cada llamada a readInput reciba un identificador o un literal como prompt
-class ReadInputArgumentRule : LintRule {
+class ReadInputArgumentRule(
+    private val configuration: LinterConfiguration = LinterConfigurations.default,
+) : LintRule {
     override val id: String = "read-input-argument"
 
     override fun check(program: Program): List<LintNotification> {
         val notifications = mutableListOf<LintNotification>()
 
-        AstTraversal.forEachExpression(program) { expression ->
+        AstTraversal.forEachExpression(program, configuration) { expression ->
             if (expression is ReadInputExpression && !expression.prompt.isIdentifierOrLiteral()) {
                 notifications.add(
                     LintNotification(
