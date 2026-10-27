@@ -103,3 +103,4 @@ Esperado: cada nivel de `if` con 4 espacios más de indentación que el anterior
 ./gradlew :CLI:run --args="lint $(pwd)/CLI/examples/v1.1/const.ps" --console=plain -q
 ```
 Esperado: `No se encontraron problemas.`
+linter/src/test/resources/test-lint-rules.json
